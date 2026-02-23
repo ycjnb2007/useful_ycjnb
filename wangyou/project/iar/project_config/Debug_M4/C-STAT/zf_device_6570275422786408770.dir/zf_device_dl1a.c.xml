@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="zf_device_dl1a.c" location="c:\users\ch lee\desktop\youhua\libraries\zf_device" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_dl1a.c</file>
+  <method>dl1a_timeout_microseconds_to_mclks</method>
+  <lineNo>175</lineNo>
+  <column>66</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `macro_period_ns&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="175" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_dl1a.c" method="dl1a_timeout_microseconds_to_mclks">
+    <traceLine line="175" text="non_float_cast_divide" type="!"/>
+    <traceLine line="175" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_dl1a.c</file>
+  <method>dl1a_decode_timeout</method>
+  <lineNo>189</lineNo>
+  <column>41</column>
+  <checkName>ATH-shift-bounds</checkName>
+  <message>RHS argument is in interval [0,255] which is out of range of the shift operator</message>
+  <trace/>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

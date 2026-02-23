@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cpptools-extension-pack",
+        "ms-vscode.cpptools-themes",
+        "formulahendry.code-runner",
+        "xaver.clang-format",
+        "ms-vscode.hexeditor",
+        "marus25.cortex-debug",
+        "dan-c-underwood.arm",
+        "zixuanwang.linkerscript",
+        "ms-vscode.vscode-serial-monitor"
+    ]
+}

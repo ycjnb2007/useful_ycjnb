@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="zf_device_ips114.c" location="c:\users\ch lee\desktop\youhua\libraries\zf_device" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method/>
+  <lineNo>590</lineNo>
+  <column>10</column>
+  <checkName>RED-local-hides-global</checkName>
+  <message>variable `data_buffer&apos; clashes with global variable `data_buffer&apos; (at line ..\..\..\libraries\zf_device\zf_device_ips114.c:67)</message>
+  <trace/>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method>ips114_show_int</method>
+  <lineNo>602</lineNo>
+  <column>18</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `offset&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="596" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c" method="ips114_show_int">
+    <traceLine line="596" text="if (10&gt;num) is true" type="^"/>
+    <traceLine line="598" text="for (;0&lt;num;num--) is false" type="^"/>
+    <traceLine line="602" text="non_float_cast_divide" type="!"/>
+    <traceLine line="580" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method/>
+  <lineNo>629</lineNo>
+  <column>10</column>
+  <checkName>RED-local-hides-global</checkName>
+  <message>variable `data_buffer&apos; clashes with global variable `data_buffer&apos; (at line ..\..\..\libraries\zf_device\zf_device_ips114.c:67)</message>
+  <trace/>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method>ips114_show_uint</method>
+  <lineNo>640</lineNo>
+  <column>21</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `offset&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="634" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c" method="ips114_show_uint">
+    <traceLine line="634" text="if (10&gt;num) is true" type="^"/>
+    <traceLine line="636" text="for (;0&lt;num;num--) is false" type="^"/>
+    <traceLine line="640" text="non_float_cast_divide" type="!"/>
+    <traceLine line="619" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method/>
+  <lineNo>673</lineNo>
+  <column>10</column>
+  <checkName>RED-local-hides-global</checkName>
+  <message>variable `data_buffer&apos; clashes with global variable `data_buffer&apos; (at line ..\..\..\libraries\zf_device\zf_device_ips114.c:67)</message>
+  <trace/>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c</file>
+  <method>ips114_show_wave</method>
+  <lineNo>888</lineNo>
+  <column>73</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `value_max&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="888" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips114.c" method="ips114_show_wave">
+    <traceLine line="888" text="non_float_cast_divide" type="!"/>
+    <traceLine line="888" text="non_float_cast_divide" type="!"/>
+    <traceLine line="863" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

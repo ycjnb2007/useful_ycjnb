@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="zf_device_key.c" location="c:\users\ch lee\desktop\youhua\libraries\zf_device" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_key.c</file>
+  <method>key_scanner</method>
+  <lineNo>72</lineNo>
+  <column>38</column>
+  <checkName>ATH-div-0-unchk-global</checkName>
+  <message>Global variable `scanner_period&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="67" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_key.c" method="key_scanner">
+    <traceLine line="67" text="for (i = 0;&gt;i;i++) is true" type="^"/>
+    <traceLine line="69" text="if (KEY_RELEASE_LEVEL!=gpio_get_level(key_index[i])) is true" type="^"/>
+    <traceLine line="72" text="if (KEY_LONG_PRESS_PERIOD/scanner_period&lt;=key_press_time[i]) is true" type="^"/>
+    <traceLine line="72" text="non_float_cast_divide" type="!"/>
+    <traceLine line="65" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

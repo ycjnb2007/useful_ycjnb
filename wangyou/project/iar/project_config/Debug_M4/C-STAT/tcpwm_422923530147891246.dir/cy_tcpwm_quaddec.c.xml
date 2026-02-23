@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="cy_tcpwm_quaddec.c" location="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c</file>
+  <method>Cy_Tcpwm_QuadDec_Init</method>
+  <lineNo>57</lineNo>
+  <column>58</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `workCTRL&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="44" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c" method="Cy_Tcpwm_QuadDec_Init">
+    <traceLine line="44" text="if ((_NULL!=ptscTCPWM) &amp;&amp; (_NULL!=config)) is true" type="^"/>
+    <traceLine line="48" text="Write to union field: workCTRL.stcField.u2QUAD_ENCODING_MODE = config-&gt;encoding_mode" type="!"/>
+    <traceLine line="49" text="Write to union field: workCTRL.stcField.u2UP_DOWN_MODE = config-&gt;range_mode" type="!"/>
+    <traceLine line="50" text="Write to union field: workCTRL.stcField.u3MODE = CY_TCPWM_QUADDEC_CTRL_QUADDEC_MODE" type="!"/>
+    <traceLine line="51" text="Write to union field: workCTRL.stcField.u1DBG_FREEZE_EN = config-&gt;debug_pause" type="!"/>
+    <traceLine line="52" text="if (1u==config-&gt;range_mode || 2u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="54" text="Write to union field: workCTRL.stcField.u1AUTO_RELOAD_CC0 = config-&gt;enableCompare0Swap" type="!"/>
+    <traceLine line="55" text="Write to union field: workCTRL.stcField.u1AUTO_RELOAD_CC1 = config-&gt;enableCompare1Swap" type="!"/>
+    <traceLine line="57" text="Read from union field: workCTRL.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c</file>
+  <method>Cy_Tcpwm_QuadDec_Init</method>
+  <lineNo>77</lineNo>
+  <column>62</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `workTR_IN_SEL0&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="44" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c" method="Cy_Tcpwm_QuadDec_Init">
+    <traceLine line="44" text="if ((_NULL!=ptscTCPWM) &amp;&amp; (_NULL!=config)) is true" type="^"/>
+    <traceLine line="52" text="if (1u==config-&gt;range_mode || 2u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="70" text="Write to union field: workTR_IN_SEL0.stcField.u8RELOAD_SEL = config-&gt;indexInput" type="!"/>
+    <traceLine line="71" text="Write to union field: workTR_IN_SEL0.stcField.u8STOP_SEL = config-&gt;stopInput" type="!"/>
+    <traceLine line="72" text="Write to union field: workTR_IN_SEL0.stcField.u8COUNT_SEL = config-&gt;phiAInput" type="!"/>
+    <traceLine line="73" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="75" text="Write to union field: workTR_IN_SEL0.stcField.u8CAPTURE0_SEL = config-&gt;capture0Input" type="!"/>
+    <traceLine line="77" text="Read from union field: workTR_IN_SEL0.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c</file>
+  <method>Cy_Tcpwm_QuadDec_Init</method>
+  <lineNo>85</lineNo>
+  <column>61</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `workTR_IN_SEL1&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="44" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c" method="Cy_Tcpwm_QuadDec_Init">
+    <traceLine line="44" text="if ((_NULL!=ptscTCPWM) &amp;&amp; (_NULL!=config)) is true" type="^"/>
+    <traceLine line="52" text="if (1u==config-&gt;range_mode || 2u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="73" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="80" text="Write to union field: workTR_IN_SEL1.stcField.u8START_SEL = config-&gt;phiBInput" type="!"/>
+    <traceLine line="81" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="83" text="Write to union field: workTR_IN_SEL1.stcField.u8CAPTURE1_SEL = config-&gt;capture1Input" type="!"/>
+    <traceLine line="85" text="Read from union field: workTR_IN_SEL1.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c</file>
+  <method>Cy_Tcpwm_QuadDec_Init</method>
+  <lineNo>97</lineNo>
+  <column>69</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `workTR_IN_EDGE_SEL&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="44" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c" method="Cy_Tcpwm_QuadDec_Init">
+    <traceLine line="44" text="if ((_NULL!=ptscTCPWM) &amp;&amp; (_NULL!=config)) is true" type="^"/>
+    <traceLine line="52" text="if (1u==config-&gt;range_mode || 2u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="73" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="81" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="88" text="Write to union field: workTR_IN_EDGE_SEL.stcField.u2RELOAD_EDGE = config-&gt;indexInputMode" type="!"/>
+    <traceLine line="89" text="Write to union field: workTR_IN_EDGE_SEL.stcField.u2STOP_EDGE = config-&gt;stopInputMode" type="!"/>
+    <traceLine line="90" text="Write to union field: workTR_IN_EDGE_SEL.stcField.u2COUNT_EDGE = 0" type="!"/>
+    <traceLine line="91" text="Write to union field: workTR_IN_EDGE_SEL.stcField.u2START_EDGE = 0" type="!"/>
+    <traceLine line="92" text="if (3u==config-&gt;range_mode) is false" type="^"/>
+    <traceLine line="97" text="Read from union field: workTR_IN_EDGE_SEL.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c</file>
+  <method>Cy_Tcpwm_QuadDec_Init</method>
+  <lineNo>102</lineNo>
+  <column>61</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `workTR_OUT_SEL&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="44" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\tcpwm\cy_tcpwm_quaddec.c" method="Cy_Tcpwm_QuadDec_Init">
+    <traceLine line="44" text="if ((_NULL!=ptscTCPWM) &amp;&amp; (_NULL!=config)) is true" type="^"/>
+    <traceLine line="52" text="if (1u==config-&gt;range_mode || 2u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="73" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="81" text="if (3u==config-&gt;range_mode) is true" type="^"/>
+    <traceLine line="92" text="if (3u==config-&gt;range_mode) is false" type="^"/>
+    <traceLine line="100" text="Write to union field: workTR_OUT_SEL.stcField.u3OUT0 = config-&gt;trigger0EventCfg" type="!"/>
+    <traceLine line="101" text="Write to union field: workTR_OUT_SEL.stcField.u3OUT1 = config-&gt;trigger1EventCfg" type="!"/>
+    <traceLine line="102" text="Read from union field: workTR_OUT_SEL.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

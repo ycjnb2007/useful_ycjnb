@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="zf_device_ips200.c" location="c:\users\ch lee\desktop\youhua\libraries\zf_device" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips200.c</file>
+  <method>ips200_show_wave</method>
+  <lineNo>1061</lineNo>
+  <column>73</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `value_max&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="1061" file="c:\users\ch lee\desktop\youhua\libraries\zf_device\zf_device_ips200.c" method="ips200_show_wave">
+    <traceLine line="1061" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1061" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1029" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

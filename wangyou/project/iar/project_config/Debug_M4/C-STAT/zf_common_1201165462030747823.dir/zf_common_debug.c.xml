@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="zf_common_debug.c" location="c:\users\ch lee\desktop\youhua\libraries\zf_common" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\zf_common\zf_common_debug.c</file>
+  <method>debug_output</method>
+  <lineNo>97</lineNo>
+  <column>16</column>
+  <checkName>RED-unused-assign</checkName>
+  <message>Value assigned to variable `len_origin&apos; is never used</message>
+  <trace/>
+  <rules></rules>
+  <severity>Low</severity>
+ </warning>
+</source>

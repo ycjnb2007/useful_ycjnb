@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="startup.c" location="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\startup" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h</file>
+  <method>Cy_IPC_Drv_SetInterruptMask</method>
+  <lineNo>265</lineNo>
+  <column>40</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="263" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h" method="Cy_IPC_Drv_SetInterruptMask">
+    <traceLine line="263" text="Write to union field: reg.stcField.u16NOTIFY = ipcNotifyMask" type="!"/>
+    <traceLine line="264" text="Write to union field: reg.stcField.u16RELEASE = ipcReleaseMask" type="!"/>
+    <traceLine line="265" text="Read from union field: reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h</file>
+  <method>Cy_IPC_Drv_SetInterrupt</method>
+  <lineNo>384</lineNo>
+  <column>39</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="382" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h" method="Cy_IPC_Drv_SetInterrupt">
+    <traceLine line="382" text="Write to union field: reg.stcField.u16NOTIFY = ipcNotifyMask" type="!"/>
+    <traceLine line="383" text="Write to union field: reg.stcField.u16RELEASE = ipcReleaseMask" type="!"/>
+    <traceLine line="384" text="Read from union field: reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h</file>
+  <method>Cy_IPC_Drv_ClearInterrupt</method>
+  <lineNo>415</lineNo>
+  <column>35</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="413" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h" method="Cy_IPC_Drv_ClearInterrupt">
+    <traceLine line="413" text="Write to union field: reg.stcField.u16NOTIFY = ipcNotifyMask" type="!"/>
+    <traceLine line="414" text="Write to union field: reg.stcField.u16RELEASE = ipcReleaseMask" type="!"/>
+    <traceLine line="415" text="Read from union field: reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h</file>
+  <method>Cy_IPC_Drv_AcquireNotify</method>
+  <lineNo>448</lineNo>
+  <column>37</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="447" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h" method="Cy_IPC_Drv_AcquireNotify">
+    <traceLine line="447" text="Write to union field: reg.stcField.u16INTR_NOTIFY = notifyEventIntr" type="!"/>
+    <traceLine line="448" text="Read from union field: reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h</file>
+  <method>Cy_IPC_Drv_ReleaseNotify</method>
+  <lineNo>474</lineNo>
+  <column>38</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="473" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\ipc\cy_ipc_drv.h" method="Cy_IPC_Drv_ReleaseNotify">
+    <traceLine line="473" text="Write to union field: reg.stcField.u16INTR_RELEASE = notifyEventIntr" type="!"/>
+    <traceLine line="474" text="Read from union field: reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_SetEcoPrescaleManual</method>
+  <lineNo>845</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempRegEcoPrescale&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="842" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_SetEcoPrescaleManual">
+    <traceLine line="842" text="union_field_write_other" type="!"/>
+    <traceLine line="843" text="Write to union field: tempRegEcoPrescale.stcField.u10ECO_INT_DIV = divInt" type="!"/>
+    <traceLine line="844" text="Write to union field: tempRegEcoPrescale.stcField.u8ECO_FRAC_DIV = divFract" type="!"/>
+    <traceLine line="845" text="Read from union field: tempRegEcoPrescale.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PllCalucDividers</method>
+  <lineNo>1449</lineNo>
+  <column>41</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `i_refDiv&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="1421" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PllCalucDividers">
+    <traceLine line="1421" text="if (feedBackDiv==_NULL) is false" type="^"/>
+    <traceLine line="1426" text="if ((feedBackFracDiv==_NULL) &amp;&amp; (fracBitNum!=0)) is false" type="^"/>
+    <traceLine line="1431" text="if (refDiv==_NULL) is false" type="^"/>
+    <traceLine line="1436" text="if (outputDiv==_NULL) is false" type="^"/>
+    <traceLine line="1441" text="if ((targetOutFreq&lt;lim-&gt;minFoutput) || (lim-&gt;maxFoutput&lt;targetOutFreq)) is false" type="^"/>
+    <traceLine line="1447" text="for (;i_refDiv&lt;=lim-&gt;maxRefDiv;i_refDiv++) is true" type="^"/>
+    <traceLine line="1449" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is true" type="^"/>
+    <traceLine line="1452" text="break" type=" "/>
+    <traceLine line="1503" text="if (errorMin==18446744073709551615) is true" type="^"/>
+    <traceLine line="1505" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PllCalucDividers</method>
+  <lineNo>1477</lineNo>
+  <column>110</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `inFreq&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="1477" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PllCalucDividers">
+    <traceLine line="1477" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1480" text="if (error&lt;errorMin) is true" type="^"/>
+    <traceLine line="1483" text="if (feedBackFracDiv!=_NULL) is true" type="^"/>
+    <traceLine line="1485" text="if (fracBitNum==0) is true" type="^"/>
+    <traceLine line="1497" text="if (errorMin==0) is false" type="^"/>
+    <traceLine line="1466" text="if (tempVco&lt;lim-&gt;minFvco) is false" type="^"/>
+    <traceLine line="1470" text="if (lim-&gt;maxFvco&lt;tempVco) is false" type="^"/>
+    <traceLine line="1477" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1480" text="if (error&lt;errorMin) is true" type="^"/>
+    <traceLine line="1483" text="if (feedBackFracDiv!=_NULL) is true" type="^"/>
+    <traceLine line="1485" text="if (fracBitNum==0) is true" type="^"/>
+    <traceLine line="1497" text="if (errorMin==0) is false" type="^"/>
+    <traceLine line="1500" text="if (errorMin==0) is false" type="^"/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is true" type="^"/>
+    <traceLine line="1452" text="break" type=" "/>
+    <traceLine line="1503" text="if (errorMin==18446744073709551615) is true" type="^"/>
+    <traceLine line="1505" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetDivider</method>
+  <lineNo>2505</lineNo>
+  <column>5</column>
+  <checkName>SPC-uninit-var-some</checkName>
+  <message>Variable `retval&apos; may be uninitialized</message>
+  <trace>
+   <traceBlock line="2492" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetDivider">
+    <traceLine line="2492" text="if (dividerType==0) is false" type="^"/>
+    <traceLine line="2496" text="if (dividerType==1u) is false" type="^"/>
+    <traceLine line="2505" text="Read of `retval&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetFracDivider</method>
+  <lineNo>2598</lineNo>
+  <column>9</column>
+  <checkName>PTR-null-cmp-bef</checkName>
+  <message>Pointer `dividerIntValue&apos; is compared with NULL, then dereferenced</message>
+  <trace>
+   <traceBlock line="2596" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetFracDivider">
+    <traceLine line="2596" text="if (dividerType==2u) is false" type="^"/>
+    <traceLine line="2601" text="if (dividerType==3u) is true" type="^"/>
+    <traceLine line="2603" text="Dereference of pointer `dividerIntValue&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetFracDivider</method>
+  <lineNo>2603</lineNo>
+  <column>9</column>
+  <checkName>PTR-null-cmp-bef</checkName>
+  <message>Pointer `dividerIntValue&apos; is compared with NULL, then dereferenced</message>
+  <trace>
+   <traceBlock line="2596" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetFracDivider">
+    <traceLine line="2596" text="if (dividerType==2u) is false" type="^"/>
+    <traceLine line="2601" text="if (dividerType==3u) is true" type="^"/>
+    <traceLine line="2603" text="Dereference of pointer `dividerIntValue&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphAssignDivider</method>
+  <lineNo>2719</lineNo>
+  <column>72</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempCLOCK_CTL_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2710" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphAssignDivider">
+    <traceLine line="2710" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2716" text="union_field_write_other" type="!"/>
+    <traceLine line="2717" text="Write to union field: tempCLOCK_CTL_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2718" text="Write to union field: tempCLOCK_CTL_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2719" text="Read from union field: tempCLOCK_CTL_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphEnableDivider</method>
+  <lineNo>2777</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2764" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphEnableDivider">
+    <traceLine line="2764" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2771" text="union_field_write_other" type="!"/>
+    <traceLine line="2772" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1ENABLE = 1ul" type="!"/>
+    <traceLine line="2773" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = 3ul" type="!"/>
+    <traceLine line="2774" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = 0xff" type="!"/>
+    <traceLine line="2775" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2776" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2777" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphDisableDivider</method>
+  <lineNo>2810</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2797" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphDisableDivider">
+    <traceLine line="2797" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2804" text="union_field_write_other" type="!"/>
+    <traceLine line="2805" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1DISABLE = 1ul" type="!"/>
+    <traceLine line="2806" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = 3ul" type="!"/>
+    <traceLine line="2807" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = 0xff" type="!"/>
+    <traceLine line="2808" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2809" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2810" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphPhaseDisableDivider</method>
+  <lineNo>2848</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2837" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphPhaseDisableDivider">
+    <traceLine line="2837" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2844" text="union_field_write_other" type="!"/>
+    <traceLine line="2845" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1DISABLE = 1ul" type="!"/>
+    <traceLine line="2846" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2847" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2848" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphPhaseAlignDivider</method>
+  <lineNo>2897</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2877" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphPhaseAlignDivider">
+    <traceLine line="2877" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2882" text="if (Cy_SysClk_CheckDividerExisting(dividerTypePA, dividerNumPA)==1u) is false" type="^"/>
+    <traceLine line="2891" text="union_field_write_other" type="!"/>
+    <traceLine line="2892" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1ENABLE = 1ul" type="!"/>
+    <traceLine line="2893" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = dividerTypePA" type="!"/>
+    <traceLine line="2894" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = dividerNumPA" type="!"/>
+    <traceLine line="2895" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2896" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2897" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

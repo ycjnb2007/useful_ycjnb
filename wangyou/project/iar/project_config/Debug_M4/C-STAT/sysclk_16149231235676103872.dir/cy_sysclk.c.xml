@@ -1,0 +1,761 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="cy_sysclk.c" location="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_EcoConfigureWithMinRneg</method>
+  <lineNo>134</lineNo>
+  <column>60</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempTrimEcoCtlReg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="77" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_EcoConfigureWithMinRneg">
+    <traceLine line="77" text="if (SRSS_BASE-&gt;unCLK_ECO_CONFIG.stcField.u1ECO_EN==1ul) is false" type="^"/>
+    <traceLine line="93" text="if (atrim==CY_SYSCLK_INVALID_TRIM_VALUE) is false" type="^"/>
+    <traceLine line="99" text="if (agcen==CY_SYSCLK_INVALID_TRIM_VALUE) is false" type="^"/>
+    <traceLine line="105" text="if (wdtrim==CY_SYSCLK_INVALID_TRIM_VALUE) is false" type="^"/>
+    <traceLine line="111" text="if (gtrim==CY_SYSCLK_INVALID_TRIM_VALUE) is false" type="^"/>
+    <traceLine line="117" text="if (rtrim==CY_SYSCLK_INVALID_TRIM_VALUE) is false" type="^"/>
+    <traceLine line="128" text="union_field_write_other" type="!"/>
+    <traceLine line="129" text="Write to union field: tempTrimEcoCtlReg.stcField.u3WDTRIM = wdtrim" type="!"/>
+    <traceLine line="130" text="Write to union field: tempTrimEcoCtlReg.stcField.u4ATRIM = atrim" type="!"/>
+    <traceLine line="131" text="Write to union field: tempTrimEcoCtlReg.stcField.u2FTRIM = ftrim" type="!"/>
+    <traceLine line="132" text="Write to union field: tempTrimEcoCtlReg.stcField.u2RTRIM = rtrim" type="!"/>
+    <traceLine line="133" text="Write to union field: tempTrimEcoCtlReg.stcField.u3GTRIM = gtrim" type="!"/>
+    <traceLine line="134" text="Read from union field: tempTrimEcoCtlReg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_SetEcoPrescale</method>
+  <lineNo>304</lineNo>
+  <column>46</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `targetFreq&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="304" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_SetEcoPrescale">
+    <traceLine line="304" text="non_float_cast_divide" type="!"/>
+    <traceLine line="307" text="if ((fixedPointDivNum64&lt;0x100) &amp;&amp; (fixedPointDivNum64&gt;0x40000)) is true" type="^"/>
+    <traceLine line="309" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_SetEcoPrescale</method>
+  <lineNo>315</lineNo>
+  <column>85</column>
+  <checkName>ATH-overflow</checkName>
+  <message>Expression `(((fixedPointDivNum&amp;0x3ff00)&gt;&gt;8ul)-1ul)&apos; with range [0,4294967295] may overflow</message>
+  <trace/>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllConfigureStandard</method>
+  <lineNo>537</lineNo>
+  <column>33</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `inputFreq&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="473" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllConfigureStandard">
+    <traceLine line="473" text="if (SRSS_BASE-&gt;unCLK_FLL_CONFIG.stcField.u1FLL_ENABLE!=0) is false" type="^"/>
+    <traceLine line="477" text="if ((outputFreq&lt;(CY_SYSCLK_MIN_FLL_CCO_OUTPUT_FREQ/CY_SYSCLK_MIN_FLL_OUTPUT_FREQ)) || (CY_SYSCLK_MAX_FLL_OUTPUT_FREQ&lt;outputFreq)) is false" type="^"/>
+    <traceLine line="481" text="if (((float)outputFreq/(float)inputFreq)&lt;2.20000005f) is false" type="^"/>
+    <traceLine line="491" text="if (outputMode==2u) is false" type="^"/>
+    <traceLine line="511" text="if (ccoFreq&gt;=CY_SYSCLK_FLL_CCO_BOUNDARY4_FREQ) is false" type="^"/>
+    <traceLine line="515" text="if (ccoFreq&gt;=CY_SYSCLK_FLL_CCO_BOUNDARY3_FREQ) is true" type="^"/>
+    <traceLine line="537" text="non_float_cast_divide" type="!"/>
+    <traceLine line="542" text="if (config.updateTolerance&gt;255u) is false" type="^"/>
+    <traceLine line="548" text="if (config.lockTolerance&gt;255u) is false" type="^"/>
+    <traceLine line="552" text="if (config.lockTolerance&gt;1u) is true" type="^"/>
+    <traceLine line="568" text="for (config.igain = ((sizeof(fll_gains_RefArray)/sizeof((fll_gains_RefArray[CY_SYSCLK_N_ELMTS])))-1ul);config.igain&gt;0;config.igain--) is true" type="^"/>
+    <traceLine line="570" text="if (fll_gains_RefArray[config.igain]&lt;ki_p) is true" type="^"/>
+    <traceLine line="572" text="break" type=" "/>
+    <traceLine line="577" text="for (config.pgain = ((sizeof(fll_gains_RefArray)/sizeof((fll_gains_RefArray[CY_SYSCLK_N_ELMTS])))-1ul);config.pgain&gt;0;config.pgain--) is true" type="^"/>
+    <traceLine line="579" text="if (fll_gains_RefArray[config.pgain]&lt;(ki_p-fll_gains_RefArray[config.igain])) is true" type="^"/>
+    <traceLine line="581" text="break" type=" "/>
+    <traceLine line="595" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllManualConfigure</method>
+  <lineNo>638</lineNo>
+  <column>56</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="622" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllManualConfigure">
+    <traceLine line="622" text="if (SRSS_BASE-&gt;unCLK_FLL_CONFIG.stcField.u1FLL_ENABLE!=0) is false" type="^"/>
+    <traceLine line="631" text="if (returnStatus==0) is true" type="^"/>
+    <traceLine line="635" text="union_field_write_other" type="!"/>
+    <traceLine line="636" text="Write to union field: tempConfg.stcField.u18FLL_MULT = config-&gt;fllMult" type="!"/>
+    <traceLine line="637" text="Write to union field: tempConfg.stcField.u1FLL_OUTPUT_DIV = (unsigned_int)(config-&gt;enableOutputDiv)" type="!"/>
+    <traceLine line="638" text="Read from union field: tempConfg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllManualConfigure</method>
+  <lineNo>646</lineNo>
+  <column>57</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg2&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="622" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllManualConfigure">
+    <traceLine line="622" text="if (SRSS_BASE-&gt;unCLK_FLL_CONFIG.stcField.u1FLL_ENABLE!=0) is false" type="^"/>
+    <traceLine line="631" text="if (returnStatus==0) is true" type="^"/>
+    <traceLine line="642" text="union_field_write_other" type="!"/>
+    <traceLine line="643" text="Write to union field: tempConfg2.stcField.u13FLL_REF_DIV = config-&gt;refDiv" type="!"/>
+    <traceLine line="644" text="Write to union field: tempConfg2.stcField.u8LOCK_TOL = config-&gt;lockTolerance" type="!"/>
+    <traceLine line="645" text="Write to union field: tempConfg2.stcField.u8UPDATE_TOL = config-&gt;updateTolerance" type="!"/>
+    <traceLine line="646" text="Read from union field: tempConfg2.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllManualConfigure</method>
+  <lineNo>655</lineNo>
+  <column>59</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg3&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="622" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllManualConfigure">
+    <traceLine line="622" text="if (SRSS_BASE-&gt;unCLK_FLL_CONFIG.stcField.u1FLL_ENABLE!=0) is false" type="^"/>
+    <traceLine line="631" text="if (returnStatus==0) is true" type="^"/>
+    <traceLine line="650" text="union_field_write_other" type="!"/>
+    <traceLine line="651" text="Write to union field: tempConfg3.stcField.u4FLL_LF_IGAIN = config-&gt;igain" type="!"/>
+    <traceLine line="652" text="Write to union field: tempConfg3.stcField.u4FLL_LF_PGAIN = config-&gt;pgain" type="!"/>
+    <traceLine line="653" text="Write to union field: tempConfg3.stcField.u13SETTLING_COUNT = config-&gt;settlingCount" type="!"/>
+    <traceLine line="654" text="Write to union field: tempConfg3.stcField.u2BYPASS_SEL = (unsigned_int)(config-&gt;outputMode)" type="!"/>
+    <traceLine line="655" text="Read from union field: tempConfg3.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllManualConfigure</method>
+  <lineNo>663</lineNo>
+  <column>61</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg4&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="622" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllManualConfigure">
+    <traceLine line="622" text="if (SRSS_BASE-&gt;unCLK_FLL_CONFIG.stcField.u1FLL_ENABLE!=0) is false" type="^"/>
+    <traceLine line="631" text="if (returnStatus==0) is true" type="^"/>
+    <traceLine line="659" text="union_field_write_other" type="!"/>
+    <traceLine line="660" text="Write to union field: tempConfg4.stcField.u3CCO_RANGE = (unsigned_int)(config-&gt;ccoRange)" type="!"/>
+    <traceLine line="661" text="Write to union field: tempConfg4.stcField.u9CCO_FREQ = (unsigned_int)(config-&gt;cco_Freq)" type="!"/>
+    <traceLine line="662" text="Write to union field: tempConfg4.stcField.u1CCO_HW_UPDATE_DIS = (unsigned_int)(config-&gt;ccoHwUpdateDisable)" type="!"/>
+    <traceLine line="663" text="Read from union field: tempConfg4.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllGetConfiguration</method>
+  <lineNo>683</lineNo>
+  <column>43</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="682" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllGetConfiguration">
+    <traceLine line="682" text="Write to union field: tempConfg.u32Register = SRSS_BASE-&gt;unCLK_FLL_CONFIG.u32Register" type="!"/>
+    <traceLine line="683" text="Read from union field: tempConfg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllGetConfiguration</method>
+  <lineNo>689</lineNo>
+  <column>44</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg2&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="688" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllGetConfiguration">
+    <traceLine line="688" text="Write to union field: tempConfg2.u32Register = SRSS_BASE-&gt;unCLK_FLL_CONFIG2.u32Register" type="!"/>
+    <traceLine line="689" text="Read from union field: tempConfg2.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllGetConfiguration</method>
+  <lineNo>696</lineNo>
+  <column>44</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg3&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="695" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllGetConfiguration">
+    <traceLine line="695" text="Write to union field: tempConfg3.u32Register = SRSS_BASE-&gt;unCLK_FLL_CONFIG3.u32Register" type="!"/>
+    <traceLine line="696" text="Read from union field: tempConfg3.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_FllGetConfiguration</method>
+  <lineNo>704</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfg4&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="703" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_FllGetConfiguration">
+    <traceLine line="703" text="Write to union field: tempConfg4.u32Register = SRSS_BASE-&gt;unCLK_FLL_CONFIG4.u32Register" type="!"/>
+    <traceLine line="704" text="Read from union field: tempConfg4.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_SetEcoPrescaleManual</method>
+  <lineNo>845</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempRegEcoPrescale&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="842" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_SetEcoPrescaleManual">
+    <traceLine line="842" text="union_field_write_other" type="!"/>
+    <traceLine line="843" text="Write to union field: tempRegEcoPrescale.stcField.u10ECO_INT_DIV = divInt" type="!"/>
+    <traceLine line="844" text="Write to union field: tempRegEcoPrescale.stcField.u8ECO_FRAC_DIV = divFract" type="!"/>
+    <traceLine line="845" text="Read from union field: tempRegEcoPrescale.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PllManualConfigure</method>
+  <lineNo>1058</lineNo>
+  <column>28</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLLConfigReg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1034" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PllManualConfigure">
+    <traceLine line="1034" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1040" text="if ((config-&gt;outputDiv&lt;MIN_OUTPUT_DIV) || (MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1045" text="if ((config-&gt;referenceDiv&lt;MIN_REF_DIV) || (MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1050" text="if ((config-&gt;feedbackDiv&lt;config-&gt;lfMode ? MIN_FB_DIV_LF : MIN_FB_DIV_NORM) || (config-&gt;lfMode ? MAX_FB_DIV_LF : MAX_FB_DIV_NORM&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1050" text="? config-&gt;lfMode is false" type="^"/>
+    <traceLine line="1051" text="? config-&gt;lfMode is true" type="^"/>
+    <traceLine line="1057" text="Write to union field: tempClkPLLConfigReg.u32Register = SRSS_BASE-&gt;unCLK_PLL_CONFIG[pllNo].u32Register" type="!"/>
+    <traceLine line="1058" text="if (tempClkPLLConfigReg.stcField.u1ENABLE!=0)" type="^"/>
+    <traceLine line="1058" text="Read from union field: tempClkPLLConfigReg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PllManualConfigure</method>
+  <lineNo>1075</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLLConfigReg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1034" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PllManualConfigure">
+    <traceLine line="1034" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1040" text="if ((config-&gt;outputDiv&lt;MIN_OUTPUT_DIV) || (MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1045" text="if ((config-&gt;referenceDiv&lt;MIN_REF_DIV) || (MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1050" text="if ((config-&gt;feedbackDiv&lt;config-&gt;lfMode ? MIN_FB_DIV_LF : MIN_FB_DIV_NORM) || (config-&gt;lfMode ? MAX_FB_DIV_LF : MAX_FB_DIV_NORM&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1050" text="? config-&gt;lfMode is false" type="^"/>
+    <traceLine line="1051" text="? config-&gt;lfMode is true" type="^"/>
+    <traceLine line="1057" text="union_field_write_other" type="!"/>
+    <traceLine line="1058" text="if (tempClkPLLConfigReg.stcField.u1ENABLE!=0) is false" type="^"/>
+    <traceLine line="1066" text="if (config-&gt;outputMode!=2u) is true" type="^"/>
+    <traceLine line="1068" text="Write to union field: tempClkPLLConfigReg.stcField.u7FEEDBACK_DIV = (unsigned_int)config-&gt;feedbackDiv" type="!"/>
+    <traceLine line="1069" text="Write to union field: tempClkPLLConfigReg.stcField.u5REFERENCE_DIV = (unsigned_int)config-&gt;referenceDiv" type="!"/>
+    <traceLine line="1070" text="Write to union field: tempClkPLLConfigReg.stcField.u5OUTPUT_DIV = (unsigned_int)config-&gt;outputDiv" type="!"/>
+    <traceLine line="1071" text="Write to union field: tempClkPLLConfigReg.stcField.u1PLL_LF_MODE = (unsigned_int)config-&gt;lfMode" type="!"/>
+    <traceLine line="1073" text="Write to union field: tempClkPLLConfigReg.stcField.u2BYPASS_SEL = (unsigned_int)config-&gt;outputMode" type="!"/>
+    <traceLine line="1075" text="Read from union field: tempClkPLLConfigReg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PllGetConfiguration</method>
+  <lineNo>1106</lineNo>
+  <column>35</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempReg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1099" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PllGetConfiguration">
+    <traceLine line="1099" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1105" text="Write to union field: tempReg.u32Register = SRSS_BASE-&gt;unCLK_PLL_CONFIG[pllNo].u32Register" type="!"/>
+    <traceLine line="1106" text="Read from union field: tempReg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MManualConfigure</method>
+  <lineNo>1295</lineNo>
+  <column>32</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLL400MConfigReg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1272" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MManualConfigure">
+    <traceLine line="1272" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1278" text="if ((config-&gt;outputDiv&lt;PLL_400M_MIN_OUTPUT_DIV) || (PLL_400M_MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1283" text="if ((config-&gt;referenceDiv&lt;PLL_400M_MIN_REF_DIV) || (PLL_400M_MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1288" text="if ((config-&gt;feedbackDiv&lt;PLL_400M_MIN_FB_DIV) || (PLL_400M_MAX_FB_DIV&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1294" text="Write to union field: tempClkPLL400MConfigReg.u32Register = SRSS_BASE-&gt;CLK_PLL400M[pllNo].unCONFIG.u32Register" type="!"/>
+    <traceLine line="1295" text="if (tempClkPLL400MConfigReg.stcField.u1ENABLE!=0)" type="^"/>
+    <traceLine line="1295" text="Read from union field: tempClkPLL400MConfigReg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MManualConfigure</method>
+  <lineNo>1310</lineNo>
+  <column>85</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLL400MConfigReg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1272" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MManualConfigure">
+    <traceLine line="1272" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1278" text="if ((config-&gt;outputDiv&lt;PLL_400M_MIN_OUTPUT_DIV) || (PLL_400M_MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1283" text="if ((config-&gt;referenceDiv&lt;PLL_400M_MIN_REF_DIV) || (PLL_400M_MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1288" text="if ((config-&gt;feedbackDiv&lt;PLL_400M_MIN_FB_DIV) || (PLL_400M_MAX_FB_DIV&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1294" text="union_field_write_other" type="!"/>
+    <traceLine line="1295" text="if (tempClkPLL400MConfigReg.stcField.u1ENABLE!=0) is false" type="^"/>
+    <traceLine line="1303" text="if (config-&gt;outputMode!=2u) is false" type="^"/>
+    <traceLine line="1309" text="Write to union field: tempClkPLL400MConfigReg.stcField.u2BYPASS_SEL = (unsigned_int)config-&gt;outputMode" type="!"/>
+    <traceLine line="1310" text="Read from union field: tempClkPLL400MConfigReg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MManualConfigure</method>
+  <lineNo>1317</lineNo>
+  <column>82</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLL400MConfig2Reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1272" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MManualConfigure">
+    <traceLine line="1272" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1278" text="if ((config-&gt;outputDiv&lt;PLL_400M_MIN_OUTPUT_DIV) || (PLL_400M_MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1283" text="if ((config-&gt;referenceDiv&lt;PLL_400M_MIN_REF_DIV) || (PLL_400M_MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1288" text="if ((config-&gt;feedbackDiv&lt;PLL_400M_MIN_FB_DIV) || (PLL_400M_MAX_FB_DIV&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1295" text="if (tempClkPLL400MConfigReg.stcField.u1ENABLE!=0) is false" type="^"/>
+    <traceLine line="1303" text="if (config-&gt;outputMode!=2u) is false" type="^"/>
+    <traceLine line="1313" text="union_field_write_other" type="!"/>
+    <traceLine line="1314" text="Write to union field: tempClkPLL400MConfig2Reg.stcField.u24FRAC_DIV = config-&gt;fracDiv" type="!"/>
+    <traceLine line="1315" text="Write to union field: tempClkPLL400MConfig2Reg.stcField.u3FRAC_DITHER_EN = config-&gt;fracDitherEn" type="!"/>
+    <traceLine line="1316" text="Write to union field: tempClkPLL400MConfig2Reg.stcField.u1FRAC_EN = config-&gt;fracEn" type="!"/>
+    <traceLine line="1317" text="Read from union field: tempClkPLL400MConfig2Reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MManualConfigure</method>
+  <lineNo>1325</lineNo>
+  <column>82</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempClkPLL400MConfig3Reg&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1272" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MManualConfigure">
+    <traceLine line="1272" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1278" text="if ((config-&gt;outputDiv&lt;PLL_400M_MIN_OUTPUT_DIV) || (PLL_400M_MAX_OUTPUT_DIV&lt;config-&gt;outputDiv)) is false" type="^"/>
+    <traceLine line="1283" text="if ((config-&gt;referenceDiv&lt;PLL_400M_MIN_REF_DIV) || (PLL_400M_MAX_REF_DIV&lt;config-&gt;referenceDiv)) is false" type="^"/>
+    <traceLine line="1288" text="if ((config-&gt;feedbackDiv&lt;PLL_400M_MIN_FB_DIV) || (PLL_400M_MAX_FB_DIV&lt;config-&gt;feedbackDiv)) is false" type="^"/>
+    <traceLine line="1295" text="if (tempClkPLL400MConfigReg.stcField.u1ENABLE!=0) is false" type="^"/>
+    <traceLine line="1303" text="if (config-&gt;outputMode!=2u) is false" type="^"/>
+    <traceLine line="1320" text="union_field_write_other" type="!"/>
+    <traceLine line="1321" text="Write to union field: tempClkPLL400MConfig3Reg.stcField.u10SSCG_DEPTH = (unsigned_int)config-&gt;sscgDepth" type="!"/>
+    <traceLine line="1322" text="Write to union field: tempClkPLL400MConfig3Reg.stcField.u3SSCG_RATE = (unsigned_int)config-&gt;sscgRate" type="!"/>
+    <traceLine line="1323" text="Write to union field: tempClkPLL400MConfig3Reg.stcField.u1SSCG_DITHER_EN = (unsigned_int)config-&gt;sscgDitherEn" type="!"/>
+    <traceLine line="1324" text="Write to union field: tempClkPLL400MConfig3Reg.stcField.u1SSCG_EN = (unsigned_int)config-&gt;sscgEn" type="!"/>
+    <traceLine line="1325" text="Read from union field: tempClkPLL400MConfig3Reg.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MGetConfiguration</method>
+  <lineNo>1356</lineNo>
+  <column>46</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfigReg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1349" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MGetConfiguration">
+    <traceLine line="1349" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1355" text="Write to union field: tempConfigReg.u32Register = SRSS_BASE-&gt;CLK_PLL400M[pllNo].unCONFIG.u32Register" type="!"/>
+    <traceLine line="1356" text="Read from union field: tempConfigReg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MGetConfiguration</method>
+  <lineNo>1363</lineNo>
+  <column>48</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfig2Reg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1349" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MGetConfiguration">
+    <traceLine line="1349" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1362" text="Write to union field: tempConfig2Reg.u32Register = SRSS_BASE-&gt;CLK_PLL400M[pllNo].unCONFIG2.u32Register" type="!"/>
+    <traceLine line="1363" text="Read from union field: tempConfig2Reg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_Pll400MGetConfiguration</method>
+  <lineNo>1369</lineNo>
+  <column>48</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempConfig3Reg&apos; is written as `u32Register&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="1349" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_Pll400MGetConfiguration">
+    <traceLine line="1349" text="if (status!=0) is false" type="^"/>
+    <traceLine line="1368" text="Write to union field: tempConfig3Reg.u32Register = SRSS_BASE-&gt;CLK_PLL400M[pllNo].unCONFIG3.u32Register" type="!"/>
+    <traceLine line="1369" text="Read from union field: tempConfig3Reg.stcField" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PllCalucDividers</method>
+  <lineNo>1449</lineNo>
+  <column>41</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `i_refDiv&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="1449" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PllCalucDividers">
+    <traceLine line="1449" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is false" type="^"/>
+    <traceLine line="1455" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1456" text="if (lim-&gt;maxFpd&lt;fpd_roundUp) is true" type="^"/>
+    <traceLine line="1458" text="continue" type=" "/>
+    <traceLine line="1449" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is true" type="^"/>
+    <traceLine line="1452" text="break" type=" "/>
+    <traceLine line="1503" text="if (errorMin==18446744073709551615) is true" type="^"/>
+    <traceLine line="1505" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PllCalucDividers</method>
+  <lineNo>1477</lineNo>
+  <column>110</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `inFreq&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="1458" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PllCalucDividers">
+    <traceLine line="1458" text="continue" type=" "/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is false" type="^"/>
+    <traceLine line="1456" text="if (lim-&gt;maxFpd&lt;fpd_roundUp) is false" type="^"/>
+    <traceLine line="1462" text="for (;i_outDiv&lt;=lim-&gt;maxOutputDiv;i_outDiv++) is true" type="^"/>
+    <traceLine line="1466" text="if (tempVco&lt;lim-&gt;minFvco) is false" type="^"/>
+    <traceLine line="1470" text="if (lim-&gt;maxFvco&lt;tempVco) is false" type="^"/>
+    <traceLine line="1477" text="non_float_cast_divide" type="!"/>
+    <traceLine line="1480" text="if (error&lt;errorMin) is true" type="^"/>
+    <traceLine line="1483" text="if (feedBackFracDiv!=_NULL) is true" type="^"/>
+    <traceLine line="1485" text="if (fracBitNum==0) is false" type="^"/>
+    <traceLine line="1497" text="if (errorMin==0) is false" type="^"/>
+    <traceLine line="1500" text="if (errorMin==0) is false" type="^"/>
+    <traceLine line="1450" text="if (fpd_roundDown&lt;lim-&gt;minFpd) is true" type="^"/>
+    <traceLine line="1452" text="break" type=" "/>
+    <traceLine line="1503" text="if (errorMin==18446744073709551615) is true" type="^"/>
+    <traceLine line="1505" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetDivider</method>
+  <lineNo>2505</lineNo>
+  <column>5</column>
+  <checkName>SPC-uninit-var-some</checkName>
+  <message>Variable `retval&apos; may be uninitialized</message>
+  <trace>
+   <traceBlock line="2492" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetDivider">
+    <traceLine line="2492" text="if (dividerType==0) is false" type="^"/>
+    <traceLine line="2496" text="if (dividerType==1u) is false" type="^"/>
+    <traceLine line="2505" text="Read of `retval&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetFracDivider</method>
+  <lineNo>2598</lineNo>
+  <column>9</column>
+  <checkName>PTR-null-cmp-bef</checkName>
+  <message>Pointer `dividerIntValue&apos; is compared with NULL, then dereferenced</message>
+  <trace>
+   <traceBlock line="2596" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetFracDivider">
+    <traceLine line="2596" text="if (dividerType==2u) is true" type="^"/>
+    <traceLine line="2598" text="Dereference of pointer `dividerIntValue&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphGetFracDivider</method>
+  <lineNo>2603</lineNo>
+  <column>9</column>
+  <checkName>PTR-null-cmp-bef</checkName>
+  <message>Pointer `dividerIntValue&apos; is compared with NULL, then dereferenced</message>
+  <trace>
+   <traceBlock line="2596" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphGetFracDivider">
+    <traceLine line="2596" text="if (dividerType==2u) is true" type="^"/>
+    <traceLine line="2598" text="Dereference of pointer `dividerIntValue&apos;" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>High</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphAssignDivider</method>
+  <lineNo>2719</lineNo>
+  <column>72</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempCLOCK_CTL_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2710" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphAssignDivider">
+    <traceLine line="2710" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2716" text="union_field_write_other" type="!"/>
+    <traceLine line="2717" text="Write to union field: tempCLOCK_CTL_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2718" text="Write to union field: tempCLOCK_CTL_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2719" text="Read from union field: tempCLOCK_CTL_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphEnableDivider</method>
+  <lineNo>2777</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2764" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphEnableDivider">
+    <traceLine line="2764" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2771" text="union_field_write_other" type="!"/>
+    <traceLine line="2772" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1ENABLE = 1ul" type="!"/>
+    <traceLine line="2773" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = 3ul" type="!"/>
+    <traceLine line="2774" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = 0xff" type="!"/>
+    <traceLine line="2775" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2776" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2777" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphDisableDivider</method>
+  <lineNo>2810</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2797" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphDisableDivider">
+    <traceLine line="2797" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2804" text="union_field_write_other" type="!"/>
+    <traceLine line="2805" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1DISABLE = 1ul" type="!"/>
+    <traceLine line="2806" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = 3ul" type="!"/>
+    <traceLine line="2807" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = 0xff" type="!"/>
+    <traceLine line="2808" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2809" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2810" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphPhaseDisableDivider</method>
+  <lineNo>2848</lineNo>
+  <column>68</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2837" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphPhaseDisableDivider">
+    <traceLine line="2837" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2844" text="union_field_write_other" type="!"/>
+    <traceLine line="2845" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1DISABLE = 1ul" type="!"/>
+    <traceLine line="2846" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2847" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2848" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h</file>
+  <method>Cy_SysClk_PeriphPhaseAlignDivider</method>
+  <lineNo>2897</lineNo>
+  <column>71</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `tempDIV_CMD_RegValue&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="2877" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.h" method="Cy_SysClk_PeriphPhaseAlignDivider">
+    <traceLine line="2877" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="2882" text="if (Cy_SysClk_CheckDividerExisting(dividerTypePA, dividerNumPA)==1u) is false" type="^"/>
+    <traceLine line="2891" text="union_field_write_other" type="!"/>
+    <traceLine line="2892" text="Write to union field: tempDIV_CMD_RegValue.stcField.u1ENABLE = 1ul" type="!"/>
+    <traceLine line="2893" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2PA_TYPE_SEL = dividerTypePA" type="!"/>
+    <traceLine line="2894" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8PA_DIV_SEL = dividerNumPA" type="!"/>
+    <traceLine line="2895" text="Write to union field: tempDIV_CMD_RegValue.stcField.u2TYPE_SEL = dividerType" type="!"/>
+    <traceLine line="2896" text="Write to union field: tempDIV_CMD_RegValue.stcField.u8DIV_SEL = dividerNum" type="!"/>
+    <traceLine line="2897" text="Read from union field: tempDIV_CMD_RegValue.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PeriphGetFrequency</method>
+  <lineNo>3195</lineNo>
+  <column>73</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `clkdiv&apos; is written as `divType16_5&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="3152" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PeriphGetFrequency">
+    <traceLine line="3152" text="Write to union field: clkdiv = {0}" type="!"/>
+    <traceLine line="3158" text="switch (dividerType)" type="^"/>
+    <traceLine line="3173" text="case 3:" type=" "/>
+    <traceLine line="3180" text="break" type=" "/>
+    <traceLine line="3189" text="if (status!=0) is false" type="^"/>
+    <traceLine line="3195" text="Read from union field: clkdiv.u32" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PeriphGetFrequency</method>
+  <lineNo>3195</lineNo>
+  <column>73</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `clkdiv&apos; is written as `divType24_5&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="3158" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PeriphGetFrequency">
+    <traceLine line="3158" text="switch (dividerType)" type="^"/>
+    <traceLine line="3173" text="case 3:" type=" "/>
+    <traceLine line="3177" text="Write to union field: clkdiv.divType24_5.integer = integer" type="!"/>
+    <traceLine line="3178" text="Write to union field: clkdiv.divType24_5.frac = frac" type="!"/>
+    <traceLine line="3180" text="break" type=" "/>
+    <traceLine line="3189" text="if (status!=0) is false" type="^"/>
+    <traceLine line="3195" text="Read from union field: clkdiv.u32" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PeriphSetFracDividerAuto</method>
+  <lineNo>3237</lineNo>
+  <column>46</column>
+  <checkName>ATH-div-0-unchk-param</checkName>
+  <message>Parameter `targetFreq&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="3225" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PeriphSetFracDividerAuto">
+    <traceLine line="3225" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="3237" text="non_float_cast_divide" type="!"/>
+    <traceLine line="3240" text="if (dividerType==2u) is false" type="^"/>
+    <traceLine line="3254" text="if (dividerType==3u) is true" type="^"/>
+    <traceLine line="3256" text="if ((fixedPointDivNum64&lt;(unsigned_long_long)0x20) &amp;&amp; (fixedPointDivNum64&gt;(unsigned_long_long)0x20000000)) is true" type="^"/>
+    <traceLine line="3261" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c</file>
+  <method>Cy_SysClk_PeriphSetFracDividerAuto</method>
+  <lineNo>3274</lineNo>
+  <column>57</column>
+  <checkName>ATH-div-0-unchk-local</checkName>
+  <message>Local variable `fixedPointDivNum64&apos; is not checked against 0 before it is used as a divisor</message>
+  <trace>
+   <traceBlock line="3225" file="c:\users\ch lee\desktop\youhua\libraries\sdk\tviibh4m\src\drivers\sysclk\cy_sysclk.c" method="Cy_SysClk_PeriphSetFracDividerAuto">
+    <traceLine line="3225" text="if (Cy_SysClk_CheckDividerExisting(dividerType, dividerNum)==1u) is false" type="^"/>
+    <traceLine line="3240" text="if (dividerType==2u) is false" type="^"/>
+    <traceLine line="3254" text="if (dividerType==3u) is true" type="^"/>
+    <traceLine line="3256" text="if ((fixedPointDivNum64&lt;(unsigned_long_long)0x20) &amp;&amp; (fixedPointDivNum64&gt;(unsigned_long_long)0x20000000)) is false" type="^"/>
+    <traceLine line="3272" text="if (targetResutFreq!=_NULL) is true" type="^"/>
+    <traceLine line="3274" text="non_float_cast_divide" type="!"/>
+    <traceLine line="3277" text="return" type=" "/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>

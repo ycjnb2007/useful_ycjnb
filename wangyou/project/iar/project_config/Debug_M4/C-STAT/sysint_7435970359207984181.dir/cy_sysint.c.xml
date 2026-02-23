@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<source name="cy_sysint.c" location="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\sysint" is_link="no">
+ <warning>
+ <file>c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\sysint\cy_sysint.c</file>
+  <method>Cy_SysInt_InitIRQ</method>
+  <lineNo>134</lineNo>
+  <column>86</column>
+  <checkName>UNION-type-punning</checkName>
+  <message>Union `unIntCtl&apos; is written as `stcField&apos;, then read as another field</message>
+  <trace>
+   <traceBlock line="120" file="c:\users\ch lee\desktop\youhua\libraries\sdk\common\src\drivers\sysint\cy_sysint.c" method="Cy_SysInt_InitIRQ">
+    <traceLine line="120" text="if (_NULL!=config) is true" type="^"/>
+    <traceLine line="132" text="Write to union field: unIntCtl.stcField.u3CPU_INT_IDX = (unsigned_char)config-&gt;intIdx" type="!"/>
+    <traceLine line="133" text="? config-&gt;isEnabled is false" type="^"/>
+    <traceLine line="133" text="Write to union field: unIntCtl.stcField.u1CPU_INT_VALID = config-&gt;isEnabled ? 1ul : 0" type="!"/>
+    <traceLine line="134" text="Read from union field: unIntCtl.u32Register" type="!"/>
+   </traceBlock>
+  </trace>
+  <rules></rules>
+  <severity>Medium</severity>
+ </warning>
+</source>
