@@ -100,7 +100,7 @@ void acc_transform_value(void)
 }
 
 // 中值积分算角度
-void gyro_yaw_integral(void)
+/*void gyro_yaw_integral(void)
 {
 
     if (fabsf(gyro_param.gyro_z) < 5.0f)
@@ -158,9 +158,51 @@ void reset_yaw_integral(void)
     imu660rb_get_gyro();  // 确保已读取最新数据
     gyro_transform_value();  // 确保已转换值
     yaw_last = gyro_param.gyro_z;  // 设置为当前值
+}*/
+
+// 中值积分算角度 (结合逐飞思路重写版)
+void gyro_yaw_integral(void)
+{
+    // 1. 设置合理的极小死区，滤除底噪但不丢失微小转向
+    if (fabsf(gyro_param.gyro_z) < 1.0f) {
+        gyro_param.gyro_z = 0;
+    }
+
+    yaw_now = gyro_param.gyro_z;
+
+    // 2. 纯净的中值积分：(上次角速度 + 本次角速度)/2 * 中断时间 dt
+    // 注意：假设你的中断是 5ms，所以 dt = 0.005f。千万别再乘别的奇怪常数了！
+    // 前面的负号取决于你的陀螺仪安装方向，如果打反了，去掉负号即可。
+    float delta_yaw = -(yaw_last + yaw_now) / 2.0f * 0.005f;
+
+    // 3. 相对偏航角 (无限累加)
+    yaw += delta_yaw;
+
+    // 4. 绝对电子罗盘角 yaw_plus (强制在 -180 到 180 度之间)
+    // 专门用来配合逐飞推文做 90 度直角转弯判断！
+    yaw_plus += delta_yaw;
+
+    if (yaw_plus > 180.0f) {
+        yaw_plus -= 360.0f;
+    } else if (yaw_plus < -180.0f) {
+        yaw_plus += 360.0f;
+    }
+
+    yaw_last = yaw_now;
 }
 
+// 偏航角重置函数 (发车时，或者识别到特征点时可以重置，消除累计误差)
+void reset_yaw_integral(void)
+{
+    yaw = 0.0f;
+    yaw_plus = 0.0f;
+    yaw_last = 0.0f;
+    yaw_now = 0.0f;
 
+    imu660rb_get_gyro();
+    gyro_transform_value();
+    yaw_last = gyro_param.gyro_z;
+}
 
 
 
