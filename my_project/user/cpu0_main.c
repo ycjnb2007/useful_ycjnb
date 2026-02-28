@@ -84,13 +84,13 @@ int core0_main(void)
            // printf("%d,%d,%d\n", gyro_param.gyro_x,  gyro_param.gyro_y,  gyro_param.gyro_z);
            // printf("%d,%d,%d\n", acc_param.acc_x, acc_param.acc_y, acc_param.acc_z);
            // printf("%.2f,%.2f,%.2f,%.2f\n", gyro_param.gyro_x, gyro_param.gyro_y, gyro_param.gyro_z,yaw);
-            //tft180_show_int(0, 0, gyro_param.gyro_x, 10);
+            tft180_show_int(0, 0, yaw_plus, 10);
 
                     //system_delay_ms(100);
                     // DRV8701_motor_driver(int L_SPEED,int R_SPEED)     //设置DRV的正反转
 
 
-           tft180_show_gray_image(0, 0, mt9v03x_image[0], MT9V03X_W, MT9V03X_H, MT9V03X_W / 2, MT9V03X_H / 2, 150);
+           //tft180_show_gray_image(0, 0, mt9v03x_image[0], MT9V03X_W, MT9V03X_H, MT9V03X_W / 2, MT9V03X_H / 2, 150);
             if(1)
                     {
 

@@ -44,11 +44,18 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY)
 {
     interrupt_global_enable(0);                     // 开启中断嵌套
     pit_clear_flag(CCU60_CH0);
-    //int a,b=0;
 
+    // 1. 采集并更新 IMU 数据
+        imu660rb_get_gyro();       // 逐飞底层读取寄存器
+        gyro_transform_value();    // 你的函数：减去零偏并转化为度数，更新 gyro_param.gyro_z
+        gyro_yaw_integral();       //  积分计算绝对角度 (yaw_plus)
 
-     //acc_y_integral();
-    gyro_yaw_integral();    // 中值积分
+        // 2. 采集并更新编码器数据
+       // Encoder_Update_Speed();    // 你的函数：读取脉冲，清零，并滤波，更新 Actual_Speed
+
+        // 3. 算 PID 和输出电机 PWM (放在最后！)
+       // Control_Loop();            // 此时它内部拿到的 gyro_param.gyro_z 和 Actual_Speed 都是最新鲜的热乎数据
+
 
 
 
