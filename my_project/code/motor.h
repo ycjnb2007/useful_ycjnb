@@ -22,6 +22,7 @@
 #define ENCODER_R_A       TIM2_ENCODER_CH1_P33_7
 #define ENCODER_R_B       TIM2_ENCODER_CH2_P33_6
 
+#define MOTOR_DEAD_ZONE 300
 // ================= 全局变量声明 =================
 // 供你的 PID 算法文件外部调用 (极简，只有速度)
 extern float Actual_Speed[2];  // 滤波后的真实车速(脉冲/周期)，[0]左轮 [1]右轮
