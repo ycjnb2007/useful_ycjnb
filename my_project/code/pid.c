@@ -111,9 +111,14 @@ void Control_Loop(void) {
     ctrl_state.angular_rate_target = Outer_Loop_Camera();
 
     // 3. 陀螺仪中环算差速
-    static float last_gyro = 0;
-    // 【替换函数】获取IMU Z轴角速度，并使用一阶滤波滤除震动噪声
-    float raw_gyro = imu660_get_z_gyro(); // 注意极性！车体向左转该值为正
+        static float last_gyro = 0;
+
+        // 直接读取 imu660.c 中算好的 Z轴角速度
+        float raw_gyro = gyro_param.gyro_z;
+
+        // 导师警告：务必在屏幕上观察 raw_gyro 的值！
+        // 规定：车头向左转时，raw_gyro 必须为正数；向右转必须为负数。
+        // 如果实测极性反了，请在这里加上负号，改成：float raw_gyro = -gyro_param.gyro_z;
     ctrl_state.angular_rate_current = Low_Pass_Filter(raw_gyro, last_gyro, 0.6f);
     last_gyro = ctrl_state.angular_rate_current;
 
@@ -129,23 +134,17 @@ void Control_Loop(void) {
     ctrl_state.target_left_speed  = ctrl_state.base_speed - ctrl_state.speed_diff;
     ctrl_state.target_right_speed = ctrl_state.base_speed + ctrl_state.speed_diff;
 
+
     // 5. 内环闭环计算
-    static float last_enc_L = 0, last_enc_R = 0;
-    // 【替换函数】读取编码器值，并滤波
-    float raw_enc_L = encoder_get_count(TIM6_ENCODER);
-    float raw_enc_R = encoder_get_count(TIM2_ENCODER);
-    encoder_clear_count(TIM6_ENCODER);
-    encoder_clear_count(TIM2_ENCODER);
+        // ！！！导师警告：绝对禁止在这里再次读取和清零编码器 ！！！
+        // 直接使用 motor.c 中已经算好的现成平滑速度
 
-    ctrl_state.current_left_speed = Low_Pass_Filter(raw_enc_L, last_enc_L, 0.4f);
-    ctrl_state.current_right_speed = Low_Pass_Filter(raw_enc_R, last_enc_R, 0.4f);
-    last_enc_L = ctrl_state.current_left_speed;
-    last_enc_R = ctrl_state.current_right_speed;
+        ctrl_state.current_left_speed = Actual_Speed[0];
+        ctrl_state.current_right_speed = Actual_Speed[1];
 
-    // 计算增量式 PI，获取目标 PWM
-    ctrl_state.output_left_pwm  = (int16)Calc_Incremental_PI(&pid_speed_L, ctrl_state.target_left_speed, ctrl_state.current_left_speed);
-    ctrl_state.output_right_pwm = (int16)Calc_Incremental_PI(&pid_speed_R, ctrl_state.target_right_speed, ctrl_state.current_right_speed);
-
+        // 计算增量式 PI，获取目标 PWM
+        ctrl_state.output_left_pwm  = (int16)Calc_Incremental_PI(&pid_speed_L, ctrl_state.target_left_speed, ctrl_state.current_left_speed);
+        ctrl_state.output_right_pwm = (int16)Calc_Incremental_PI(&pid_speed_R, ctrl_state.target_right_speed, ctrl_state.current_right_speed);
     // 6. 执行电机输出
     Motor_Control(ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
 }

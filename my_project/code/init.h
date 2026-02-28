@@ -10,7 +10,7 @@
 
 #include "zf_common_headfile.h"
 
-
+void init();
 
 
 #endif /* CODE_INIT_H_ */
