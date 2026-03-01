@@ -49,79 +49,64 @@ int core0_main(void)
     // 此处编写用户代码 例如外设初始化代码等
 
 
-        mt9v03x_init();                     //总转风摄像头初始化
-        tft180_set_dir(TFT180_CROSSWISE);
-         tft180_init();
-        // tft180_full(RGB565_YELLOW);
+    clock_init();                   // 获取时钟频率<务必保留>
+    debug_init();                   // 初始化默认调试串口
 
-         //UI_Init();
-        // DRV8701_init();
-         imu660rb_init();
-         // 滤波器初始化
-        // 这里的 10.0f 是截止频率，越小越平滑但延迟越高；0.005f是采样时间(5ms)
-        LPF_InitByFrequency(&velocity_filter, 10.0f, 0.005f);
-        gyro_zero_param_init();
-        acc_zero_param_init();
-        pit_ms_init(CCU60_CH0, 5);
-        Motor_Init();
+    // === 2. 硬件外设初始化 ===
+    mt9v03x_init();                 // 总转风摄像头初始化
 
+    // 屏幕强制使用横屏，适配菜单
+    tft180_set_dir(TFT180_CROSSWISE);
+    tft180_init();
 
+    imu660rb_init();
+    // 滤波器初始化
+    LPF_InitByFrequency(&velocity_filter, 10.0f, 0.005f);
+    gyro_zero_param_init();
+    acc_zero_param_init();
 
+    Motor_Init();
 
+    // === 3. 菜单与按键初始化 ===
+    UI_Menu_Init();
 
+    // === 4. 最后开定时器中断，防止一上电还没初始化完就进中断跑飞 ===
+    // 5ms触发一次 cc60_pit_ch0_isr
+    pit_ms_init(CCU60_CH0, 5);
 
+    cpu_wait_event_ready();         // 等待所有核心初始化完毕
 
-        // 此处编写用户代码 例如外设初始化代码等
-        cpu_wait_event_ready();         // 等待所有核心初始化完毕
-        while (TRUE)
+    while (TRUE)
+    {
+        // === 5. 菜单调度任务 (发车前有效，发车后内部会自动直接退出) ===
+        UI_Menu_Task();
+
+        // === 6. 图像处理与寻线逻辑 ===
+        // 这里假设你在其他地方或者用 mt9v03x_finish_flag 标志位判断图像是否采集完
+        if (mt9v03x_finish_flag)
         {
-            // 此处编写需要循环执行的代码
-             Motor_Control(2800, 2800);
+            // 在这里放你的图像处理代码
+            // image_copy();
+            // Get_imgOSTU();
+            // error_val = xxx; // 计算出中线偏差并更新 error_val 供 PID 和屏幕使用
 
-
-
-
-           // printf("%d,%d,%d\n", gyro_param.gyro_x,  gyro_param.gyro_y,  gyro_param.gyro_z);
-           // printf("%d,%d,%d\n", acc_param.acc_x, acc_param.acc_y, acc_param.acc_z);
-           // printf("%.2f,%.2f,%.2f,%.2f\n", gyro_param.gyro_x, gyro_param.gyro_y, gyro_param.gyro_z,yaw);
-            tft180_show_int(0, 0, yaw_plus, 10);
-
-                    //system_delay_ms(100);
-                    // DRV8701_motor_driver(int L_SPEED,int R_SPEED)     //设置DRV的正反转
-
-
-           //tft180_show_gray_image(0, 0, mt9v03x_image[0], MT9V03X_W, MT9V03X_H, MT9V03X_W / 2, MT9V03X_H / 2, 150);
-            if(1)
-                    {
-
-
-                //DRV8701_motor_go();
-               // go();
-                //tft180_show_gray_image(0, 0, imgGray[0], XM, YM, XM , YM , nowThreshold);
-                //DRV8701_motor_go();
-                //DRV8701_motor_driver(0,100);     //设置DRV的正反转
-
-
-
-
-
-
-
-
-
-
-
-
-                        //UI_Task();
-                       // mt9v03x_finish_flag = 0;
-
-
-
-                    }
-
-            // 此处编写需要循环执行的代码
+            mt9v03x_finish_flag = 0; // 清空标志位
         }
+
+        // === 7. 发车状态检测与安全锁 ===
+        if (system_running == 1)
+        {
+            // 发车后主循环只全力算图像，绝对不管屏幕了！
+            // 底层电机控制权完全交给 isr.c 里的 5ms 定时器中断
+        }
+        else
+        {
+            // 停车模式下：强制输出电机为 0，防止把车放在地上调参时车跑了伤人
+            Motor_Control(0, 0);
+        }
+    }
 }
+
 
 #pragma section all restore
 // **************************** 代码区域 ****************************

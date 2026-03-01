@@ -13,7 +13,7 @@
 
 //#define pi (3.14f)
 uint8_t gyro_zero_flag = 0, acc_zero_flag=0; // 零飘标定完成标志位初始化
-volatile float yaw_plus = 0; // 小车机体坐标系y轴与东天北or全局坐标系y轴夹角(逆时针为正，顺时针为负，范围[-pi,pi])
+volatile float yaw_plus = 0; // 绝对偏航角（电子指南针），标定车头为0度
 
 volatile float yaw = 0;                    // 实时航偏角初始化
 volatile float yaw_last = 0;               // 中值积分航偏角前后状态初始化
@@ -31,7 +31,7 @@ acc_zero_paramTypedef acc_zero_param;      // 零飘参数
 volatile gyro_paramTypedef gyro_param = {
     .gyro_x = 0,
     .gyro_y = 0,
-    .gyro_z = 0
+    .gyro_z = 0   //Z 轴角速度（转弯瞬时速度）
 
 }; // 角加速度
 volatile acc_paramTypedef acc_param = {
@@ -82,14 +82,14 @@ void acc_zero_param_init(void)
 }
 
 // 单位转化为度数
+
 void gyro_transform_value(void)
 {
-    gyro_param.gyro_x = imu660rb_gyro_transition((float)imu660rb_gyro_x - gyro_zero_param.Xdata);
-    gyro_param.gyro_y = imu660rb_gyro_transition((float)imu660rb_gyro_y - gyro_zero_param.Ydata);
-    gyro_param.gyro_z = imu660rb_gyro_transition((float)imu660rb_gyro_z - gyro_zero_param.Zdata);
-    // 转为实际物理值，单位度
+    // 【强制加括号】防止宏定义展开时运算优先级出错
+    gyro_param.gyro_x = imu660rb_gyro_transition( ((float)imu660rb_gyro_x - gyro_zero_param.Xdata) );
+    gyro_param.gyro_y = imu660rb_gyro_transition( ((float)imu660rb_gyro_y - gyro_zero_param.Ydata) );
+    gyro_param.gyro_z = -imu660rb_gyro_transition( ((float)imu660rb_gyro_z - gyro_zero_param.Zdata) );//板子上z轴是反的，加了个负号
 }
-
 // 单位转化为度数
 void acc_transform_value(void)
 {
@@ -99,81 +99,22 @@ void acc_transform_value(void)
     // 转为实际物理值，单位m^2/s
 }
 
-// 中值积分算角度
-/*void gyro_yaw_integral(void)
-{
 
-    if (fabsf(gyro_param.gyro_z) < 5.0f)
-        gyro_param.gyro_z = 0;
-
-    yaw_now = gyro_param.gyro_z;
-    yaw += -(yaw_last + yaw_now) / 2 * 0.005f * 0.0633f; // 中值积分法
-
-
-
-    yaw_last = yaw_now;
-
-    yaw_plus += ((yaw_last + yaw_now) / 2 * 0.005f * 0.0633f) * pi / 180.00f; // 逆时针为正，顺时针为负
-
-    if (yaw_plus >= pi)
-    {
-        yaw_plus -= 2 * pi;
-    }
-    else if (yaw_plus < -pi)
-    {
-        yaw_plus += 2 * pi;
-    }
-// 规范到[-180,180]度
-}
-
-
-// 中值积分算速度
-void acc_y_integral(void)
-{
-
-    if (fabsf(acc_param.acc_y) < 50.0f)
-        acc_param.acc_y = 0;
-
-    acc_param.acc_y = LPF_Update(&velocity_filter, acc_param.acc_y);
-
-    acc_now = acc_param.acc_y;
-    acc_y_speed += (acc_last + acc_now) / 2 * 0.005f*0.01f; // 中值积分法
-
-    acc_last = acc_now;
-
-
-}
-
-// 偏航角重置函数 - 在需要重置偏航角时调用此函数
-void reset_yaw_integral(void)
-{
-    // 重置所有相关变量
-    yaw = 0.0f;
-    yaw_plus = 0.0f;
-    yaw_last = 0.0f;
-    yaw_now = 0.0f;
-
-    // 重置积分中间状态（关键！）
-    // 获取当前陀螺仪值作为新的起点
-    imu660rb_get_gyro();  // 确保已读取最新数据
-    gyro_transform_value();  // 确保已转换值
-    yaw_last = gyro_param.gyro_z;  // 设置为当前值
-}*/
 
 // 中值积分算角度 (结合逐飞思路重写版)
 void gyro_yaw_integral(void)
 {
-    // 1. 设置合理的极小死区，滤除底噪但不丢失微小转向
-    if (fabsf(gyro_param.gyro_z) < 1.0f) {
-        gyro_param.gyro_z = 0;
-    }
+    // 【直接注释掉死区】相信我们前面正确的零偏标定
+        // if (fabsf(gyro_param.gyro_z) < 1.0f) {
+        //     gyro_param.gyro_z = 0;
+        // }
 
     yaw_now = gyro_param.gyro_z;
 
     // 2. 纯净的中值积分：(上次角速度 + 本次角速度)/2 * 中断时间 dt
     // 注意：假设你的中断是 5ms，所以 dt = 0.005f。千万别再乘别的奇怪常数了！
     // 前面的负号取决于你的陀螺仪安装方向，如果打反了，去掉负号即可。
-    float delta_yaw = -(yaw_last + yaw_now) / 2.0f * 0.005f;
+    float delta_yaw = (yaw_last + yaw_now) / 2.0f * 0.005f;
 
     // 3. 相对偏航角 (无限累加)
     yaw += delta_yaw;

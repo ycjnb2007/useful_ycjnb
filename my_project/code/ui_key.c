@@ -1,83 +1,95 @@
+// ==========================================
+// 文件名: ui_key.c
+// 描述: 4按键消抖与状态机实现，支持单击、长按、连按
+// ==========================================
 #include "ui_key.h"
 
-// ==================== 手感微调区 ====================
-// 这里的单位是“扫描次数”。如果你的 main 循环延时是 10ms：
-#define KEY_DEBOUNCE_TIME   3    // 消抖 30ms (反应快且稳)
-#define KEY_LONG_TIME       80   // 长按 0.8秒 (触发退出)
-#define KEY_REPEAT_DELAY    30   // 连按延迟 0.3秒 (按住0.3秒后开始连跳)
-#define KEY_REPEAT_RATE     5    // 连按间隔 50ms (数值跳动飞快)
+// ==================== 按键手感参数微调 ====================
+// 假设主循环或定时器调用此扫描函数的周期为 10ms
+#define DEBOUNCE_TICK   3     // 消抖时间 = 3次 * 10ms = 30ms
+#define LONG_PRESS_TICK 80    // 长按阈值 = 80次 * 10ms = 0.8秒 (0.8秒后发车)
+#define REPEAT_DELAY    40    // 连按延迟 = 40次 * 10ms = 0.4秒 (按住0.4秒后开始连调)
+#define REPEAT_RATE     5     // 连按速率 = 5次 * 10ms = 50ms (每50ms数值跳动一次)
 
-// 按键索引
-enum {K_UP=0, K_DOWN, K_LEFT, K_RIGHT, K_CENTER, KEY_NUM};
-static const gpio_pin_enum key_pins[KEY_NUM] = {PIN_KEY_UP, PIN_KEY_DOWN, PIN_KEY_LEFT, PIN_KEY_RIGHT, PIN_KEY_CENTER};
+// 内部按键ID枚举，方便数组遍历
+enum {K_UP = 0, K_DOWN, K_ENTER, K_BACK, KEY_NUM};
+// 绑定引脚
+static const gpio_pin_enum key_pins[KEY_NUM] = {PIN_KEY_UP, PIN_KEY_DOWN, PIN_KEY_ENTER, PIN_KEY_BACK};
 
+// 按键控制块结构体 (用于状态机记录每个按键的状态)
 typedef struct {
-    uint8_t  state;      // 0:松开, 1:按下, 2:长按锁定
-    uint16_t down_time;
+    uint8_t  state;      // 0=松开状态, 1=按下消抖状态, 2=长按/连按锁定状态
+    uint16_t time_cnt;   // 按下持续时间计数器
 } Key_Ctrl_t;
 
 static Key_Ctrl_t keys[KEY_NUM];
 
+// 初始化所有按键引脚
 void UI_Key_Init(void) {
-    for(int i=0; i<KEY_NUM; i++) {
-        // 务必开启上拉 (GPI_PULL_UP)，因为按键按下是接地(低电平)
+    for(int i = 0; i < KEY_NUM; i++) {
+        // 调用逐飞库的GPIO初始化。
+        // 参数: 引脚名, 输入模式(GPI), 默认电平0, 开启内部上拉(GPI_PULL_UP)
+        // 开启上拉是因为通常按键按下是接地(即按下读到低电平0)
         gpio_init(key_pins[i], GPI, 0, GPI_PULL_UP);
         keys[i].state = 0;
-        keys[i].down_time = 0;
+        keys[i].time_cnt = 0;
     }
 }
 
+// 按键核心扫描机 (每次循环调用一次，绝不使用死循环延时)
 Key_Event_t UI_Key_Scan(void) {
-    Key_Event_t event = KEY_NONE;
+    Key_Event_t event = KEY_NONE; // 默认无事件
 
-    for(int i=0; i<KEY_NUM; i++) {
-        // 低电平有效 (按下 == 0)
+    for(int i = 0; i < KEY_NUM; i++) {
+        // 读取引脚电平，0表示按下 (因为配置了上拉)
         if (gpio_get_level(key_pins[i]) == 0) {
 
+            // 状态0: 刚检测到按下
             if (keys[i].state == 0) {
-                // 初次按下，防抖
-                keys[i].down_time++;
-                if (keys[i].down_time >= KEY_DEBOUNCE_TIME) keys[i].state = 1;
+                keys[i].time_cnt++;
+                // 达到消抖阈值，确认是真的按下了，跳转到状态1
+                if (keys[i].time_cnt >= DEBOUNCE_TICK) keys[i].state = 1;
             }
-            else if (keys[i].state == 1) { // 持续按住
-                keys[i].down_time++;
+            // 状态1: 持续按下中，处理长按和连按逻辑
+            else if (keys[i].state == 1) {
+                keys[i].time_cnt++;
 
-                // === 逻辑1: 长按 DOWN 键退出 ===
-                if (i == K_DOWN) {
-                    if (keys[i].down_time >= KEY_LONG_TIME) {
-                        keys[i].state = 2; // 进入锁定状态，防止重复触发退出
-                        return KEY_DOWN_LONG_PRESS;
+                // 逻辑A: 处理 ENTER 键的长按发车
+                if (i == K_ENTER) {
+                    if (keys[i].time_cnt >= LONG_PRESS_TICK) {
+                        keys[i].state = 2; // 进入锁定态，松手前不再触发其他事件
+                        return KEY_ENTER_LONG; // 向上层抛出长按发车指令
                     }
                 }
-
-                // === 逻辑2: 左右键连按 (调参) ===
-                else if (i == K_LEFT || i == K_RIGHT) {
-                    if (keys[i].down_time >= KEY_REPEAT_DELAY) {
-                        // 周期性触发连按
-                        if ((keys[i].down_time - KEY_REPEAT_DELAY) % KEY_REPEAT_RATE == 0) {
-                            // 【重点修复】这里保持 state=1，不要改成2，否则连按会断
-                            if (i == K_LEFT)  return KEY_LEFT_REPEAT;
-                            if (i == K_RIGHT) return KEY_RIGHT_REPEAT;
+                // 逻辑B: 处理 UP/DOWN 键的连按调参
+                else if (i == K_UP || i == K_DOWN) {
+                    if (keys[i].time_cnt >= REPEAT_DELAY) {
+                        // 利用取余运算，实现每隔 REPEAT_RATE 触发一次连按
+                        if ((keys[i].time_cnt - REPEAT_DELAY) % REPEAT_RATE == 0) {
+                            if (i == K_UP)   return KEY_UP_REPEAT;
+                            if (i == K_DOWN) return KEY_DOWN_REPEAT;
                         }
                     }
                 }
             }
-            // state==2 (长按锁定后) 死等松手，不产生事件
+            // 状态2(长按锁定): 什么都不做，死等用户松手
         }
-        else { // 按键松开
-            if (keys[i].state == 1) { // 如果没触发长按，松开这一下算单击
+        else { // 引脚高电平，按键已松开
+            // 如果是在状态1(即没有触发长按就松手了)，说明是一次有效单击
+            if (keys[i].state == 1) {
                 switch(i) {
-                    case K_UP:     event = KEY_UP_CLICK; break;
-                    case K_DOWN:   event = KEY_DOWN_CLICK; break;
-                    case K_LEFT:   event = KEY_LEFT_CLICK; break;
-                    case K_RIGHT:  event = KEY_RIGHT_CLICK; break;
-                    case K_CENTER: event = KEY_CENTER_CLICK; break;
+                    case K_UP:    event = KEY_UP_CLICK;    break;
+                    case K_DOWN:  event = KEY_DOWN_CLICK;  break;
+                    case K_ENTER: event = KEY_ENTER_CLICK; break;
+                    case K_BACK:  event = KEY_BACK_CLICK;  break;
                 }
             }
-            // 复位状态
+            // 松手后，所有状态全部清零复位
             keys[i].state = 0;
-            keys[i].down_time = 0;
+            keys[i].time_cnt = 0;
         }
     }
+
+    // 如果一次扫描中有多个按键事件，先只返回第一个(由于上层循环很快，下一个事件会在下一次扫描抛出)
     return event;
 }
