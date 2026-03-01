@@ -9,7 +9,7 @@
 uint8_t system_running = 0; // 发车标志。1=运行，0=停车(显示菜单)
 
 // 演示用的变量 (这些通常在你的 main.c 或 control.c 里更新)
-float Yaw_plus = 0.0f;
+//float Yaw_plus = 0.0f;
 int16_t error_val = 0;
 int16_t speed_left_enc = 0;
 int16_t speed_right_enc = 0;
@@ -85,7 +85,7 @@ static void Draw_Bottom_Dashboard(void) {
 
     // 第一行: Yaw_plus 和 巡线误差
     // %-5.1f: 负号代表左对齐，5代表总宽度，1代表小数位。左对齐可防数字跳动留下的残影
-    sprintf(buf, "Y:%-5.1f E:%-4d  ", Yaw_plus, error_val);
+    sprintf(buf, "Y:%-5.1f E:%-4d  ", yaw_plus, error_val);
     tft180_show_string(0, y_start, buf);
 
     // 第二行: 左右轮速
@@ -98,36 +98,26 @@ static void Draw_Bottom_Dashboard(void) {
 
 // 主页面: 绘制图像与中线
 static void UI_Draw_Page_Main(void) {
-    // 由于图像最大宽140, 屏幕160, 所以需向右偏移居中
     int16_t offset_x = (SCR_W - XM) / 2;
-    int16_t offset_y = 0; // Y 从 0 开始，顶格显示
+    int16_t offset_y = 0;
 
-    // 1. 画二值化图像底色 (放弃大面积 fill 刷屏，而是双重循环控制像素，配合 Safe_Draw_Point 最安全)
-    for (int y = 0; y < YM; y++) {
-        for (int x = 0; x < XM; x++) {
-            if (imgOSTU[y][x] == 255) {
-                Safe_Draw_Point(offset_x + x, offset_y + y, RGB565_WHITE);
-            } else {
-                Safe_Draw_Point(offset_x + x, offset_y + y, RGB565_BLACK); // 画黑点相当于局部清屏，防止残影
-            }
-        }
-    }
+    // 【核心修复】绝不能用 for 循环画底层图像，直接用整块搬运！
+    // imgOSTU 是你的二值化图（只有0和255），直接以灰度图形式传给屏幕，阈值设128。
+    // 这行代码刷一张图只要几毫秒，瞬间释放 CPU！
+    tft180_show_gray_image(offset_x, offset_y, (const uint8_t *)imgOSTU, XM, YM, XM, YM, 128);
 
-    // 2. 叠加绘制图像控制辅助线
+    // 辅助线因为只有几十个点，继续用画点函数没问题
     for (int i = 0; i < YM; i++) {
-        // 画红色的中线
         if (mid_line[i] < XM) {
             Safe_Draw_Point(offset_x + mid_line[i], offset_y + i, RGB565_RED);
         }
     }
     for (int i = 0; i < l_data_statics; i++) {
-        // 画绿色的左边线 (一定要判断 < YM 和 < XM)
         if (points_l[i][0] < XM && points_l[i][1] < YM) {
             Safe_Draw_Point(offset_x + points_l[i][0], offset_y + points_l[i][1], RGB565_GREEN);
         }
     }
     for (int i = 0; i < r_data_statics; i++) {
-        // 画蓝色的右边线
         if (points_r[i][0] < XM && points_r[i][1] < YM) {
             Safe_Draw_Point(offset_x + points_r[i][0], offset_y + points_r[i][1], RGB565_BLUE);
         }

@@ -9,11 +9,11 @@
 
 // 1. 物理按键引脚定义 (根据你的硬件修改)
 // 放弃5按键，只保留4个核心按键，足够完成所有交互
-#define PIN_KEY_UP      P11_3  // 向上/加
-#define PIN_KEY_DOWN    P13_1  // 向下/减
-#define PIN_KEY_ENTER   P02_7  // 确认/进入/长按发车
-#define PIN_KEY_BACK    P13_3  // 返回/取消/减(辅助)
-
+#define PIN_KEY_UP      P33_13  // 向上/加
+#define PIN_KEY_DOWN    P33_9  // 向下/减
+#define PIN_KEY_CAR     P33_12  //长按发车
+#define PIN_KEY_BACK    P33_10 // 返回主菜单
+#define PIN_KEY_ENTER   P33_11 // 进入子菜单
 // 2. 按键事件枚举
 // 定义按键触发后的所有动作
 typedef enum {

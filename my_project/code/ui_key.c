@@ -7,7 +7,7 @@
 // ==================== 按键手感参数微调 ====================
 // 假设主循环或定时器调用此扫描函数的周期为 10ms
 #define DEBOUNCE_TICK   3     // 消抖时间 = 3次 * 10ms = 30ms
-#define LONG_PRESS_TICK 80    // 长按阈值 = 80次 * 10ms = 0.8秒 (0.8秒后发车)
+#define LONG_PRESS_TICK 200    // 长按阈值 = 200次 * 10ms = 2秒 (0.8秒后发车)
 #define REPEAT_DELAY    40    // 连按延迟 = 40次 * 10ms = 0.4秒 (按住0.4秒后开始连调)
 #define REPEAT_RATE     5     // 连按速率 = 5次 * 10ms = 50ms (每50ms数值跳动一次)
 

@@ -60,6 +60,7 @@ int core0_main(void)
     tft180_init();
 
     imu660rb_init();
+    system_delay_ms(500);
     // ÂË²¨Æ÷³õÊ¼»¯
     LPF_InitByFrequency(&velocity_filter, 10.0f, 0.005f);
     gyro_zero_param_init();

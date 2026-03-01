@@ -16,7 +16,7 @@
 extern uint8_t system_running;
 
 // --- 传感器与控制变量声明 (供菜单显示或调节使用) ---
-extern float Yaw_plus;          // 陀螺仪积分角度或偏方差
+//extern float Yaw_plus;          // 陀螺仪积分角度或偏方差
 extern int16_t error_val;       // 巡线误差
 extern int16_t speed_left_enc;  // 左轮编码器速度
 extern int16_t speed_right_enc; // 右轮编码器速度
