@@ -8,8 +8,8 @@
 // 假设主循环或 PIT定时器 调用此函数的周期为 10ms
 #define DEBOUNCE_TICK   3      // 消抖时间 = 3次 * 10ms = 30ms (过滤机械抖动)
 #define LONG_PRESS_TICK 150    // 长按发车阈值 = 150次 * 10ms = 1.5秒 (防误触)
-#define REPEAT_DELAY    40     // 连按延迟 = 40次 * 10ms = 0.4秒 (按住0.4秒后开始疯狂跳数)
-#define REPEAT_RATE     5      // 连按速率 = 5次 * 10ms = 50ms (每50ms触发一次加减)
+#define REPEAT_DELAY    600     // 连按延迟 = 600次 * 10ms = 0.4秒 (按住0.4秒后开始疯狂跳数)  数值越大，越不容易触发连按
+#define REPEAT_RATE     100      // 连按速率 = 5次 * 10ms = 50ms (每50ms触发一次加减)   数值越大，加减速度越慢
 
 // 内部按键ID枚举，将5个引脚映射为 0-4 的索引，方便 for 循环遍历
 enum {K_UP = 0, K_DOWN, K_CAR, K_BACK, K_NEXT, KEY_NUM};

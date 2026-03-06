@@ -28,6 +28,10 @@ void Motor_Init(void)
 /**
  * @brief  单电机控制内部函数 (带死区补偿与限幅)
  */
+/**
+ * @brief  单电机控制内部函数 (带死区补偿与限幅)
+ * @note   已优化为【慢衰减】模式，专治微型电机“嗡嗡响不转”与扭矩不足
+ */
 static void Motor_Drive_Single(pwm_channel_enum pin1, pwm_channel_enum pin2, int16 speed)
 {
     // 1. 死区补偿：只要目标速度不为0，就加上死区值
@@ -41,16 +45,22 @@ static void Motor_Drive_Single(pwm_channel_enum pin1, pwm_channel_enum pin2, int
     if(speed > MOTOR_MAX_DUTY)  speed = MOTOR_MAX_DUTY;
     if(speed < -MOTOR_MAX_DUTY) speed = -MOTOR_MAX_DUTY;
 
-    // 3. AT8236 驱动逻辑：正转/反转/滑行
+    // 3. AT8236 驱动逻辑：采用【慢衰减 (Slow Decay)】模式
+    // 核心原理：驱动引脚一端常驻高电平(10000)，另一端输出反相PWM。
+    // 这样在PWM的有效工作区内，H桥两端处于一高一低(驱动)；在无效区内，处于双高(刹车)。
     if (speed > 0) {
-        pwm_set_duty(pin1, speed);
-        pwm_set_duty(pin2, 0);
+        // 正转：pin1 常驻高电平，pin2 占空比随速度减小
+        pwm_set_duty(pin1, MOTOR_MAX_DUTY);
+        pwm_set_duty(pin2, MOTOR_MAX_DUTY - speed);
     } else if (speed < 0) {
-        pwm_set_duty(pin1, 0);
-        pwm_set_duty(pin2, -speed);
+        // 反转：pin2 常驻高电平，pin1 占空比随速度减小
+        // 注意：这里的 speed 是负数，所以直接相加就相当于减去其绝对值
+        pwm_set_duty(pin1, MOTOR_MAX_DUTY + speed);
+        pwm_set_duty(pin2, MOTOR_MAX_DUTY);
     } else {
-        pwm_set_duty(pin1, 0);
-        pwm_set_duty(pin2, 0);
+        // 停车状态 (speed == 0)：双引脚拉高，进入主动刹车，让车模瞬间定住
+        pwm_set_duty(pin1, MOTOR_MAX_DUTY);
+        pwm_set_duty(pin2, MOTOR_MAX_DUTY);
     }
 }
 

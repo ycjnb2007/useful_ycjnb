@@ -1,7 +1,5 @@
 #include "pid.h"
-#include <math.h>
-#include "deal_img.h" // 包含图像处理头文件以获取 IF, mid_line 等
-// ---------------- 定义实际的调参全局变量 (带初始值) ----------------
+
 int16_t speed_straight_l = 250;
 int16_t speed_straight_s = 180;
 int16_t speed_curve      = 120;
@@ -16,7 +14,7 @@ float gyro_kd      = 0.10f;
 float speed_kp     = 18.0f;
 float speed_ki     = 1.50f;
 
-// 实例化控制器
+// ???????????
 System_Control_State_t ctrl_state;
 Positional_PD_t  pid_turn_outer;
 Positional_PD_t  pid_gyro_middle;
@@ -53,7 +51,7 @@ float Outer_Loop_Camera(void) {
     ctrl_state.camera_error = 70.0f - (float)mid_line[aim_row];
     pid_turn_outer.error = ctrl_state.camera_error;
 
-    // 【关键优化】：将修改后的全局变量实时赋给底层！彻底告别宏定义写死的问题！
+    // ???????????????????????????????????????????潩????????
     pid_turn_outer.Kp = turn_kp_base + turn_kp_var * fabs(pid_turn_outer.error);
     pid_turn_outer.Kd = turn_kd;
 
@@ -68,7 +66,7 @@ float Outer_Loop_Camera(void) {
 }
 
 void Control_Loop(void) {
-    // 【关键优化】：每次进入循环，同步其他参数，保证 UI 调参后瞬间起效
+    // ??????????????潩???????????????????????? UI ???潩??????潩
     pid_gyro_middle.Kp = gyro_kp;
     pid_gyro_middle.Kd = gyro_kd;
     pid_speed_L.Kp = speed_kp; pid_speed_L.Ki = speed_ki;
@@ -84,8 +82,8 @@ void Control_Loop(void) {
     ctrl_state.angular_rate_target = Outer_Loop_Camera();
 
     static float last_gyro = 0;
-    // float raw_gyro = gyro_param.gyro_z; // 你需要在你的工程里确保 gyro_param 可见，或 extern 它
-    float raw_gyro = 0; // 由于缺失文件，这里用0代位。请换回你 imu 读取的值
+    // float raw_gyro = gyro_param.gyro_z; // ?????????????????? gyro_param ??????? extern ??
+    float raw_gyro = gyro_param.gyro_z; // ?????????????????0??潩???????? imu ??????
 
     ctrl_state.angular_rate_current = Low_Pass_Filter(raw_gyro, last_gyro, 0.6f);
     last_gyro = ctrl_state.angular_rate_current;
@@ -99,12 +97,16 @@ void Control_Loop(void) {
     ctrl_state.target_left_speed  = ctrl_state.base_speed - ctrl_state.speed_diff;
     ctrl_state.target_right_speed = ctrl_state.base_speed + ctrl_state.speed_diff;
 
-    // 假设 Actual_Speed 是外部拿到的，如果是 motor.c 里的记得 extern
-    // ctrl_state.current_left_speed = Actual_Speed[0];
-    // ctrl_state.current_right_speed = Actual_Speed[1];
+    // ???? Actual_Speed ??????????????? motor.c ????? extern
+    ctrl_state.current_left_speed = Actual_Speed[0];
+    ctrl_state.current_right_speed = Actual_Speed[1];
 
     ctrl_state.output_left_pwm  = (int16_t)Calc_Incremental_PI(&pid_speed_L, ctrl_state.target_left_speed, ctrl_state.current_left_speed);
     ctrl_state.output_right_pwm = (int16_t)Calc_Incremental_PI(&pid_speed_R, ctrl_state.target_right_speed, ctrl_state.current_right_speed);
 
-    // Motor_Control(ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    if (system_running == 1) {
+        Motor_Control(ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    } else {
+        Motor_Control(0, 0);
+    }
 }
