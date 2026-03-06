@@ -1,4 +1,7 @@
 #include "pid.h"
+#include "filter.h"
+#include "deal_img.h"
+#include "imu660.h"
 
 int16_t speed_straight_l = 250;
 int16_t speed_straight_s = 180;
@@ -65,7 +68,12 @@ float Outer_Loop_Camera(void) {
     return pid_turn_outer.output;
 }
 
+
+float current_yaw = 0.0f;
+uint8_t blind_turn_finished = 0;
+
 void Control_Loop(void) {
+
     // ??????????????潩???????????????????????? UI ???潩??????潩
     pid_gyro_middle.Kp = gyro_kp;
     pid_gyro_middle.Kd = gyro_kd;
@@ -81,12 +89,41 @@ void Control_Loop(void) {
 
     ctrl_state.angular_rate_target = Outer_Loop_Camera();
 
-    static float last_gyro = 0;
-    // float raw_gyro = gyro_param.gyro_z; // ?????????????????? gyro_param ??????? extern ??
-    float raw_gyro = gyro_param.gyro_z; // ?????????????????0??潩???????? imu ??????
-
-    ctrl_state.angular_rate_current = Low_Pass_Filter(raw_gyro, last_gyro, 0.6f);
-    last_gyro = ctrl_state.angular_rate_current;
+    float raw_gyro = gyro_param.gyro_z; // 获取Z轴角速度
+    
+    // 如果滤波器未初始化，调用filter库初始化(Alpha 0.6)
+    if (!velocity_filter.initialized) {
+        LPF_InitByAlpha(&velocity_filter, 0.6f);
+    }
+    
+    // 使用用户 filter.h 的滤波器 updating
+    ctrl_state.angular_rate_current = LPF_Update(&velocity_filter, raw_gyro);
+    
+    // 对角速度进行积分计算当前偏航角(假设控制周期10ms)
+    // 这里的 0.010f 需按实际控制周期（如定时器中断源周期）调整
+    current_yaw += ctrl_state.angular_rate_current * 0.010f; 
+    
+    // ---- 盲转逻辑介入 ----
+    if (is_blind_turning == 1) {
+        // Yaw_Target 在外部图像处理检测到弯道时赋值 (如 左转90 右转-90)
+        float yaw_error = Yaw_Target - (current_yaw - Yaw_Start);
+        
+        // 阈值设为 5.0，如果到达目标角度，则结束盲转直走（等待图像恢复正常）
+        if (abs(yaw_error) < 5.0f || blind_turn_finished) {
+            blind_turn_finished = 1;
+            ctrl_state.angular_rate_target = 0; 
+            is_blind_turning = 0; // 可以交还给图像
+        } else {
+            // P控制或者给恒定偏航角速度，此处简单使用恒定打角
+            if (yaw_error > 0) ctrl_state.angular_rate_target = 180.0f; 
+            else ctrl_state.angular_rate_target = -180.0f;
+            
+            ctrl_state.base_speed = speed_curve; // 盲切速度用弯道速度
+        }
+    } else {
+        blind_turn_finished = 0;
+        Yaw_Start = current_yaw; // 常规巡线时挂载 Yaw_Start 锚点
+    }
 
     pid_gyro_middle.error = ctrl_state.angular_rate_target - ctrl_state.angular_rate_current;
     pid_gyro_middle.output = pid_gyro_middle.Kp * pid_gyro_middle.error +

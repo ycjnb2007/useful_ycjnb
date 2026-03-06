@@ -48,30 +48,26 @@ enum ImgFlag
     straightlineS,   // 短直道
     straightlineL,   // 长直道
     curve,           // 曲线/弯道
-    crossroads,      // 十字路口
-    disappear,       // 断路（开关元素）
-
+    crossroads,      // 十字路口（备用）
 };
 
-// ==================== 元素模式枚举 ====================
-typedef enum Elements_Mode
+// ==================== 核心状态机 (21届疯狂电路组专用) ====================
+// 这套状态机是为了代替以前无脑寻线，能够处理恶心的干扰件和路口盲转
+typedef enum
 {
-    NO,   // 不启用元素锁定
-    YES,  // 启用元素锁定
-}Elements_Mode;
-
-// ==================== 元素锁定类型 ====================
-typedef enum Elements_Lock
-{
-    Empty_,      // 空锁定
-    Disappear_,  // 断路锁定（删除圆环和停车线，只保留断路）
-}Elements_Lock;
+    STATE_NORMAL,           // 正常八邻域巡线模式
+    STATE_CHECK_NODE,       // 触发增宽，起动态框鉴别（真/假节点）
+    STATE_FALSE_IGNORE,     // 假干扰强拉直线模式（无视电感/二极管等锯齿）
+    STATE_SMOOTH_OFFSET,    // 真节点转弯第一段：动态平滑偏置中线，诱导姿态
+    STATE_BLIND_TURN_YAW    // 真节点转弯第二段：陀螺仪 Yaw 角强行盲转
+} RunState;
 
 // ==================== 运行方向枚举 ====================
 typedef enum RUN_Dir
 {
     Left,
     Right,
+    Straight,
 } RUN_Dir;
 
 // ==================== 全局变量声明 ====================
@@ -80,23 +76,18 @@ typedef enum RUN_Dir
 extern enum ImgFlag IF;    // 当前图像标志
 extern enum ImgFlag IF_L;  // 上一帧图像标志
 extern uint8 Stop_line ;
-// 元素处理相关
-extern volatile Elements_Mode elements_Mode;        // 元素模式开关
-extern volatile Elements_Lock elements_Lock[10];    // 元素锁定数组（最多10个）
-extern int elements_index;                          // 元素索引
+extern RunState cur_state; // 【新增】当前运行状态机
 
-// 断路（开关）处理相关
-extern uint8 disappear_flag;                        // 断路检测标志
-extern int disappear_num;                           // 当前断路编号
-extern int disappear_total;                         // 断路总数量
-extern float Disappear_Length;                      // 断路已行驶长度
-extern float Disappear_Zero;                        // 断路起始角度
-extern float Disappear_Yaw;                         // 断路当前偏航角
-extern int Disappear_angle_L[3];                    // 左转断路角度表
-extern int Disappear_angle_R[3];                    // 右转断路角度表
-extern int Disappear_Dir_L[3][3];                   // 左转断路方向控制表
-extern int Disappear_Dir_R[3][3];                   // 右转断路方向控制表
-extern float Start_angle;                           // 比赛起始角度
+// 全局转弯方向数组 (由用户自行在策略主循环维护或查表)
+// 比如 Path_Array 里面存了整条赛道经过节点的转向指令：0为左，1为右，2为直行
+extern uint8 Path_Array[20];
+extern uint8 node_index;                    // 当前跑到了第几个节点
+
+// 动态框触发及偏置相关
+extern uint8 Y_trigger;                     // 触发动态检测框的起始行
+extern uint8 is_blind_turning;              // 是否在盲转状态
+extern float Yaw_Target;                    // 盲转目标角度
+extern float Yaw_Start;                     // 盲转起始角度
 
 // 运行方向
 extern volatile RUN_Dir run_dir;                    // 当前运行方向
@@ -164,17 +155,15 @@ extern float k2[YM];                                // 高度校正系数
 void standard(void);                                // 初始化标准化处理
 void image_copy();                                  // 复制图像给imggray[][]
 uint8 getOSTUThreshold(void);                       // 大津法阈值计算
-void Get_imgOSTU(void);                             // 二值化图像获取
+void Get_imgOSTU(void);                             // 二值化图像获取及其侧边反光暴力消除
 uint8 get_start_point(void);                        // 寻找起点
-uint8 search_l_r(uint8 start_l_x,uint8 start_l_y,uint8 start_r_x,uint8 start_r_y); // 八邻域探索
+uint8 search_l_r(uint8 start_l_x,uint8 start_l_y,uint8 start_r_x,uint8 start_r_y); // 八邻域探索及 Trigger 2.0
+uint8 Check_Node_Box(uint8 trigger_y);              // 【新增】依据动态框甄别真假节点
 void Get_lost_tip(uint8 length);                    // 获取丢失边界特征
 void Get_start_center(void);                        // 获取起点中心
 uint8 Get_top_straightline(void);                   // 绘制顶端直线
 uint8 Left_curve_line(void);                        // 绘制左曲线
 uint8 Right_curve_line(void);                       // 绘制右曲线
 uint8 Deal_crossroads(void);                        // 十字路口处理
-uint8 Dashedline_Makeup(void);                      // 虚线补全
-uint8 Disappear_detection(void);                    // 断路检测
-uint8 Deal_disappear(void);                         // 断路处理
 
 #endif // DEAL_IMG_H
