@@ -164,6 +164,6 @@ void Get_start_center(void);                        // 获取起点中心
 uint8 Get_top_straightline(void);                   // 绘制顶端直线
 uint8 Left_curve_line(void);                        // 绘制左曲线
 uint8 Right_curve_line(void);                       // 绘制右曲线
-uint8 Deal_crossroads(void);                        // 十字路口处理
+
 
 #endif // DEAL_IMG_H
