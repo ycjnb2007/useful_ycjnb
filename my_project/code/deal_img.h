@@ -75,19 +75,16 @@ typedef enum RUN_Dir
 // 图像处理标志
 extern enum ImgFlag IF;    // 当前图像标志
 extern enum ImgFlag IF_L;  // 上一帧图像标志
-extern uint8 Stop_line ;
-extern RunState cur_state; // 【新增】当前运行状态机
+extern RunState cur_state;
+extern float Yaw_Start;
+extern float Yaw_Target;
+extern uint8 is_blind_turning; // 【新增】当前运行状态机
 
 // 全局转弯方向数组 (由用户自行在策略主循环维护或查表)
 // 比如 Path_Array 里面存了整条赛道经过节点的转向指令：0为左，1为右，2为直行
-extern uint8 Path_Array[20];
-extern uint8 node_index;                    // 当前跑到了第几个节点
 
 // 动态框触发及偏置相关
 extern uint8 Y_trigger;                     // 触发动态检测框的起始行
-extern uint8 is_blind_turning;              // 是否在盲转状态
-extern float Yaw_Target;                    // 盲转目标角度
-extern float Yaw_Start;                     // 盲转起始角度
 
 // 运行方向
 extern volatile RUN_Dir run_dir;                    // 当前运行方向
@@ -101,9 +98,6 @@ extern uint8_t maxThreshold;                        // 最大阈值限制
 extern int minGray;                                 // 图像最小灰度值
 extern int maxGray;                                 // 图像最大灰度值
 extern uint8 img_threshold_group[3];                // 分区阈值：近、中、远景
-extern uint8 close_Threshold;                       // 近景阈值偏移
-extern uint8 mid_Threshold;                         // 中景阈值偏移
-extern uint8 far_Threshold;                         // 远景阈值偏移
 
 // 图像存储数组
 extern uint8 imgGray[IMG_H][IMG_W];                 // 原始灰度图像
