@@ -665,25 +665,27 @@ uint8 search_l_r(uint8 start_l_x, uint8 start_l_y, uint8 start_r_x, uint8 start_
             break; // 绕了一圈回来了
         }
         // =========================================================================
-        // 【新增：Trigger 2.0 打断】
-        // 在每一次八邻域伸长时，判断当前高度下的赛道宽度
-        // 如果当前宽度超过标准该行宽度的 1.5 倍（或者其他阈值，可依据实际测量调整）
-        // 则认为遇到了可能的干扰/路口，立刻停止爬线，交给外层动态框去判定！
+        // 【新增：Trigger 2.0 打断】 (防抖滤波)
         // =========================================================================
         uint8 cur_y = hightest; // 用当前爬到的最高点作为基准行
         int current_width = points_r[r_data_statics][0] - points_l[l_data_statics][0];
-        uint8 trigger_width = (current_width > (white_width[cur_y] * 1.5)) ? 1 : 0;
-        // 触发条件 2：物理断崖式死胡同（规则中的电容、MOS管存在断路极板）
-        uint8 trigger_broken = 0;
-        if (l_data_statics == r_data_statics && imgOSTU[cur_y+1][Deal_W/2] == Black) {
-             trigger_broken = 1; 
+        
+        static uint8 width_jump_cnt = 0;
+        if (current_width > (white_width[cur_y] * 1.5)) {
+            width_jump_cnt++;
+        } else {
+            width_jump_cnt = 0;
         }
-        if ((trigger_width || trigger_broken) && cur_y > Deal_Bottom + 5)
+        
+        // 触发条件 2：物理断崖式死胡同
+        uint8 trigger_broken = (l_data_statics == r_data_statics && imgOSTU[cur_y+1][XM/2] == Black) ? 1 : 0;
+        
+        if ((width_jump_cnt >= 3 || trigger_broken) && cur_y > Deal_Bottom + 5)
         {
-            // 记录触发断点行
-            Y_trigger = cur_y;
-            cur_state = STATE_CHECK_NODE; // 改变状态机，要求外部重新起框鉴定
-            break; // 停止继续八邻域爬线！让外框来接管
+            Y_trigger = (width_jump_cnt >= 3) ? (cur_y - 2) : cur_y; // 回退到真正突变的那一行
+            cur_state = STATE_CAPACITY_CHECK; // 【注意】不要直接甄别，先去检查视野容量！
+            width_jump_cnt = 0;
+            break; // 立刻截断爬线！
         }
     }
     // 绘制左右边线
@@ -1057,17 +1059,20 @@ uint8 Right_curve_line(void)
 // ==========================================================
 uint8 Check_Node_Box(uint8 trigger_y)
 {
-    // 1. 定高：查表算出向上 15cm 的顶边 box_top
-    int box_h = 0; 
+    // 1. 不对称定框：[-5cm, +15cm]
+    int box_bottom = trigger_y - Length_5cm[trigger_y]; 
+    if (box_bottom < Deal_Bottom) box_bottom = Deal_Bottom;
+    
+    int box_top = trigger_y;
     uint8 temp_y = trigger_y;
-    for(int i = 0; i < 3; i++) { 
+    for(int i = 0; i < 3; i++) { // 向上 15cm，确保包住整个元器件
         if(temp_y >= Deal_Top) break;
-        box_h += Length_5cm[temp_y];
+        box_top += Length_5cm[temp_y];
         temp_y += Length_5cm[temp_y];
     }
-    int box_top = trigger_y + box_h; 
-    if(box_top > Deal_Top) box_top = Deal_Top;
-    // 2. 扫三条边的有效出口 (边缘白点连续统计，>5防噪点)
+    if (box_top > Deal_Top) box_top = Deal_Top;
+
+    // 2. 扫三条边的有效出口 (必须在 box_bottom 到 box_top 的全区间扫侧边)
     uint8 exit_top = 0;
     uint8 exit_left = 0;
     uint8 exit_right = 0;
@@ -1081,7 +1086,7 @@ uint8 Check_Node_Box(uint8 trigger_y)
     }
     // 检查左边
     count_w = 0;
-    for(int y = trigger_y; y <= box_top; y++) {
+    for(int y = box_bottom; y <= box_top; y++) {
         if(imgOSTU[y][Deal_Left + 5] == White || imgOSTU[y][Deal_Left + 6] == White) {
             count_w++;
             if(count_w > 5) { exit_left = 1; break; }
@@ -1089,7 +1094,7 @@ uint8 Check_Node_Box(uint8 trigger_y)
     }
     // 检查右边
     count_w = 0;
-    for(int y = trigger_y; y <= box_top; y++) {
+    for(int y = box_bottom; y <= box_top; y++) {
         if(imgOSTU[y][Deal_Right - 5] == White || imgOSTU[y][Deal_Right - 6] == White) {
             count_w++;
             if(count_w > 5) { exit_right = 1; break; }

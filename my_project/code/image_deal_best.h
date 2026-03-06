@@ -59,7 +59,11 @@ typedef enum
     STATE_CHECK_NODE,       // 触发增宽，起动态框鉴别（真/假节点）
     STATE_FALSE_IGNORE,     // 假干扰强拉直线模式（无视电感/二极管等锯齿）
     STATE_SMOOTH_OFFSET,    // 真节点转弯第一段：动态平滑偏置中线，诱导姿态
-    STATE_BLIND_TURN_YAW    // 真节点转弯第二段：陀螺仪 Yaw 角强行盲转
+    STATE_BLIND_TURN_YAW,   // 真节点转弯第二段：陀螺仪 Yaw 角强行盲转
+    STATE_CAPACITY_CHECK,   // 视野容量检测
+    STATE_WAIT_NODE,        // 盲开一小段等待路口沉下
+    STATE_L_CORNER,         // 纯左直角弯
+    STATE_R_CORNER          // 纯右直角弯
 } RunState;
 
 // ==================== 运行方向枚举 ====================
