@@ -6,7 +6,7 @@
 #include "imu660.h"
 #include <stdio.h>
 #include "pid.h"
-#include "deal_img.h"
+#include "image_deal_best.h"
 
 #define SCR_W 160
 #define SCR_H 128

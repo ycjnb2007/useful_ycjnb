@@ -1,5 +1,5 @@
-#ifndef CODE_DEAL_IMG_H_
-#define CODE_DEAL_IMG_H_
+#ifndef CODE_IMAGE_DEAL_BEST_H_
+#define CODE_IMAGE_DEAL_BEST_H_
 #include "zf_common_headfile.h"
 
 // ==================== 图像尺寸定义 ====================
@@ -160,4 +160,4 @@ uint8 Left_curve_line(void);                        // 绘制左曲线
 uint8 Right_curve_line(void);                       // 绘制右曲线
 
 
-#endif // DEAL_IMG_H
+#endif // CODE_IMAGE_DEAL_BEST_H_
