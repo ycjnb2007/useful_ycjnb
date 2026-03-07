@@ -665,27 +665,41 @@ uint8 search_l_r(uint8 start_l_x, uint8 start_l_y, uint8 start_r_x, uint8 start_
             break; // 绕了一圈回来了
         }
         // =========================================================================
-        // 【新增：Trigger 2.0 打断】 (防抖滤波)
+        // 【新增：Trigger 2.5 动态防抖与发散验证】
         // =========================================================================
         uint8 cur_y = hightest; // 用当前爬到的最高点作为基准行
         int current_width = points_r[r_data_statics][0] - points_l[l_data_statics][0];
         
-        static uint8 width_jump_cnt = 0;
+        static int width_jump_cnt = 0; // 改成有符号整型，方便倒扣分
+        
         if (current_width > (white_width[cur_y] * 1.5)) {
-            width_jump_cnt++;
+            // 斜率发散校验：左边界向左生长，右边界向右生长
+            int left_diff = points_l[l_data_statics][0] - points_l[l_data_statics-1][0];
+            int right_diff = points_r[r_data_statics][0] - points_r[r_data_statics-1][0];
+            
+            if (left_diff < 0 && right_diff > 0) {
+                width_jump_cnt += 2; // 真实路口，双向发散，权重增加
+            } else {
+                width_jump_cnt += 1; // 单侧反光噪点或单侧岔路
+            }
         } else {
-            width_jump_cnt = 0;
+            // 连续性惩罚：如果突然变窄，不直接清零，而是倒扣分，过滤高频噪点！
+            width_jump_cnt -= 2; 
+            if (width_jump_cnt < 0) width_jump_cnt = 0;
         }
         
         // 触发条件 2：物理断崖式死胡同
         uint8 trigger_broken = (l_data_statics == r_data_statics && imgOSTU[cur_y+1][XM/2] == Black) ? 1 : 0;
         
-        if ((width_jump_cnt >= 3 || trigger_broken) && cur_y > Deal_Bottom + 5)
+        // 阈值提高到 4
+        if ((width_jump_cnt >= 4 || trigger_broken) && cur_y > Deal_Bottom + 5)
         {
-            Y_trigger = (width_jump_cnt >= 3) ? (cur_y - 2) : cur_y; // 回退到真正突变的那一行
-            cur_state = STATE_CAPACITY_CHECK; // 【注意】不要直接甄别，先去检查视野容量！
+            Y_trigger = (width_jump_cnt >= 4) ? (cur_y - 2) : cur_y; // 回退到真正突变的那一行
+            cur_state = STATE_CAPACITY_CHECK; 
             width_jump_cnt = 0;
-            break; // 立刻截断爬线！
+            break; 
+        }
+
         }
     }
     // 绘制左右边线

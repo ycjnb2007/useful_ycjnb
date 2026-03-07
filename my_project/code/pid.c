@@ -49,13 +49,35 @@ float Calc_Incremental_PI(Incremental_PI_t *pid, float target, float current) {
     return pid->output;
 }
 
-float Outer_Loop_Camera(void) {
-    uint8_t aim_row = Deal_Bottom + 15;
-    if(IF == straightlineL) aim_row = Deal_Bottom + 25;
-    else if(IF == curve)    aim_row = Deal_Bottom + 10;
-    if(aim_row > Deal_Top)  aim_row = Deal_Top;
+#include "run.h" // Ensure cur_state is accessible
+extern RunState cur_state;
+extern float Actual_Speed[2];
 
-    // multi-row weighted average (0.1, 0.2, 0.4, 0.2, 0.1) anti-noise
+float Outer_Loop_Camera(void) {
+    // 1. Dynamic lookahead
+    float current_v = (Actual_Speed[0] + Actual_Speed[1]) / 2.0f;
+    uint8_t dynamic_lookahead = 10 + (uint8_t)(current_v * 0.05f); 
+    uint8_t aim_row = Deal_Bottom + dynamic_lookahead;
+    
+    switch (cur_state) {
+        case STATE_FALSE_IGNORE:
+        case STATE_WAIT_NODE:
+            aim_row = Deal_Top - 5; 
+            break;
+        case STATE_SMOOTH_OFFSET:
+        case STATE_L_CORNER:
+        case STATE_R_CORNER:
+            aim_row = Deal_Bottom + 10;
+            break;
+        default:
+            if(IF == straightlineL) aim_row += 10;
+            else if(IF == curve)    aim_row -= 5;
+            break;
+    }
+    
+    if(aim_row > Deal_Top)  aim_row = Deal_Top;
+    if(aim_row < Deal_Bottom + 2) aim_row = Deal_Bottom + 2;
+    
     float weighted_mid = (float)mid_line[aim_row];
     if (aim_row >= 2 && aim_row <= YY - 2) {
         weighted_mid =  mid_line[aim_row - 2] * 0.1f +
@@ -64,20 +86,49 @@ float Outer_Loop_Camera(void) {
                         mid_line[aim_row + 1] * 0.2f +
                         mid_line[aim_row + 2] * 0.1f;
     }
-    ctrl_state.camera_error = 70.0f - weighted_mid;
+    
+    ctrl_state.camera_error = (XM / 2.0f) - weighted_mid; 
     pid_turn_outer.error = ctrl_state.camera_error;
-
-    // ???????????????????????????????????????????????????
-    pid_turn_outer.Kp = turn_kp_base + turn_kp_var * fabs(pid_turn_outer.error);
-    pid_turn_outer.Kd = turn_kd;
-
+    
+    float current_kp = turn_kp_base;
+    float current_kd = turn_kd;
+    
+    switch (cur_state) {
+        case STATE_NORMAL:
+        case STATE_CAPACITY_CHECK:
+        case STATE_CHECK_NODE:
+            current_kp = turn_kp_base + turn_kp_var * fabs(pid_turn_outer.error);
+            current_kd = turn_kd;
+            break;
+            
+        case STATE_FALSE_IGNORE:
+        case STATE_WAIT_NODE:
+            current_kp = turn_kp_base * 0.4f; 
+            current_kd = turn_kd * 2.5f;     
+            break;
+            
+        case STATE_SMOOTH_OFFSET:
+        case STATE_L_CORNER:
+        case STATE_R_CORNER:
+            current_kp = turn_kp_base * 1.5f; 
+            current_kd = turn_kd * 0.3f;      
+            break;
+            
+        case STATE_BLIND_TURN_YAW:
+            current_kp = 0;
+            current_kd = 0;
+            break;
+    }
+    
+    pid_turn_outer.Kp = current_kp;
+    pid_turn_outer.Kd = current_kd;
     pid_turn_outer.output = pid_turn_outer.Kp * pid_turn_outer.error +
                             pid_turn_outer.Kd * (pid_turn_outer.error - pid_turn_outer.last_error);
-
     pid_turn_outer.last_error = pid_turn_outer.error;
-
+    
     if(pid_turn_outer.output > 300.0f) pid_turn_outer.output = 300.0f;
     if(pid_turn_outer.output < -300.0f) pid_turn_outer.output = -300.0f;
+    
     return pid_turn_outer.output;
 }
 
@@ -93,11 +144,19 @@ void Control_Loop(void) {
     pid_speed_L.Kp = speed_kp; pid_speed_L.Ki = speed_ki;
     pid_speed_R.Kp = speed_kp; pid_speed_R.Ki = speed_ki;
 
-    switch (IF) {
-        case straightlineL: ctrl_state.base_speed = speed_straight_l; break;
-        case straightlineS: ctrl_state.base_speed = speed_straight_s; break;
-        case curve:         ctrl_state.base_speed = speed_curve;      break;
-        default:            ctrl_state.base_speed = speed_straight_s; break;
+    if (cur_state == STATE_BLIND_TURN_YAW) {
+        ctrl_state.base_speed = speed_curve;
+    } else if (cur_state == STATE_CHECK_NODE || cur_state == STATE_CAPACITY_CHECK) {
+        ctrl_state.base_speed = speed_curve * 0.8f;
+    } else if (cur_state == STATE_L_CORNER || cur_state == STATE_R_CORNER || cur_state == STATE_SMOOTH_OFFSET) {
+        ctrl_state.base_speed = speed_curve;
+    } else {
+        switch (IF) {
+            case straightlineL: ctrl_state.base_speed = speed_straight_l; break;
+            case straightlineS: ctrl_state.base_speed = speed_straight_s; break;
+            case curve:         ctrl_state.base_speed = speed_curve;      break;
+            default:            ctrl_state.base_speed = speed_straight_s; break;
+        }
     }
 
     ctrl_state.angular_rate_target = Outer_Loop_Camera();
@@ -138,8 +197,8 @@ void Control_Loop(void) {
         else {
             if (my_abs((int)yaw_error) < 5 || blind_turn_finished) {
                 blind_turn_finished = 1;
-                ctrl_state.angular_rate_target = 0; 
-                is_blind_turning = 0; // angle reached, return to vision
+                ctrl_state.angular_rate_target = gyro_param.gyro_z * 0.5f; 
+                is_blind_turning = 0; // angle reached
             } else {
                 // Positional PD flexible turning
                 ctrl_state.angular_rate_target = blind_turn_kp * yaw_error - blind_turn_kd * gyro_param.gyro_z;

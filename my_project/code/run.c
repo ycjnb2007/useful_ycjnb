@@ -71,8 +71,22 @@ void go(void)
         }
         
         if (cur_state == STATE_WAIT_NODE) {
-            // 等待视野变小，什么都不做，保持中线即可
+            static uint32 wait_distance_start = 0;
+            if (wait_distance_start == 0) wait_distance_start = Distance_Integral;
+            
+            // 强行用一个较低的锚点查框，看路口有没有沉下来
+            uint8 temp_box_result = Check_Node_Box(Deal_Bottom + 20); 
+            
+            if (temp_box_result != 0) {
+                cur_state = STATE_CHECK_NODE; // 沉下来了，重新甄别
+                wait_distance_start = 0;
+            } else if (Distance_Integral - wait_distance_start > 1000) { 
+                // 走过了10cm左右还没看到框，判定为假路口或误触发
+                cur_state = STATE_NORMAL;     // 强制弃用，防止死锁！
+                wait_distance_start = 0;
+            }
         }
+
 
         if (cur_state == STATE_CHECK_NODE)
         {
