@@ -5,6 +5,10 @@
 #include "pid.h"
 #include "filter.h"
 
+// 新增：用于维持盲转期间的斜线偏置轨迹
+float blind_k = 0;              // 盲转维持斜率
+int blind_bottom_x = XM / 2;    // 盲转底部起始X坐标
+
 /******************************************************************************
 * 函数名称     : go
 * 描述         : 图像处理主函数，每帧调用一次
@@ -24,13 +28,16 @@ void go(void)
     memset(mid_line, XM/2, sizeof(mid_line));
 
     /* ========== 第二步：盲转强制阶段 ========== */
-    /* 如果陀螺仪盲转正在进行，图像不做任何决策，直接返回 */
+    /* 如果正在盲转，维持触发时计算好的斜线轨迹，完成换道平移 */
     if (is_blind_turning)
     {
-        for (uint8 i = 0; i <= Deal_Top; i++)
+        for (int y = Deal_Bottom; y <= Deal_Top; y++)
         {
-            mid_line[i] = XM / 2;
-            imgOSTU[i][(uint8)mid_line[i]] = Control_line;
+            int calc_x = blind_bottom_x + (int)(blind_k * (y - Deal_Bottom));
+            if (calc_x < 0) calc_x = 0;
+            if (calc_x > XX) calc_x = XX;
+            mid_line[y] = (uint8)calc_x;
+            imgOSTU[y][mid_line[y]] = Control_line;
         }
         return;
     }
@@ -86,36 +93,31 @@ void go(void)
         }
 
         /* ===== 各状态执行 ===== */
-        if (cur_state == STATE_FALSE_IGNORE)
+        if (cur_state == STATE_FALSE_IGNORE || 
+           (cur_state == STATE_SMOOTH_OFFSET && Path_Array[node_index] == 2))
         {
-            // 1. 获取顶端锚点 (Top_Anchor)
-            int top_scan_y = Y_trigger; 
-            uint8 temp_y = Y_trigger;
-            for(int i = 0; i < 3; i++) { temp_y += Length_5cm[temp_y]; } // 越过 15cm 干扰区
-            top_scan_y = temp_y + 2; 
-            if (top_scan_y >= Deal_Top) top_scan_y = Deal_Top - 5;
+            /* 假干扰 或 真节点直行：计算动态上下锚点，画斜线诱导换道 */
+            int top_scan_y = Y_trigger + Length_5cm[Y_trigger] * 3; // 向上取约 15cm
+            if (top_scan_y > Deal_Top - 5) top_scan_y = Deal_Top - 5;
             
-            // 扫锚点附近 5 行的有效中点
-            int valid_x_sum = 0, valid_cnt = 0;
+            int valid_cnt = 0;
+            int valid_x_sum = 0;
+            // 向上扫 5 行，寻找真实的白色出口中点作为 Top_Anchor
             for (int y = top_scan_y; y <= top_scan_y + 4; y++) {
-                // 简单寻找左右黑白跳变求中线
-                int l_p = Deal_Left, r_p = Deal_Right;
-                for(int j = Deal_Left; j <= Deal_Right; j++){
-                    if(imgOSTU[y][j] == Black && imgOSTU[y][j+1] == White) { l_p = j; break; }
-                }
-                for(int j = Deal_Right; j >= Deal_Left; j--){
-                    if(imgOSTU[y][j] == Black && imgOSTU[y][j-1] == White) { r_p = j; break; }
-                }
-                if (l_p != Deal_Left || r_p != Deal_Right) {
-                    valid_x_sum += (l_p + r_p) / 2;
+                int left_edge = Deal_Left, right_edge = Deal_Right;
+                for(int x = start_center_x; x > Deal_Left; x--) if(imgOSTU[y][x] == Black) { left_edge = x; break; }
+                for(int x = start_center_x; x < Deal_Right; x++) if(imgOSTU[y][x] == Black) { right_edge = x; break; }
+                if(right_edge > left_edge) {
+                    valid_x_sum += (left_edge + right_edge) / 2;
                     valid_cnt++;
                 }
             }
-            int top_anchor_x = (valid_cnt > 0) ? (valid_x_sum / valid_cnt) : (XM / 2);
-            int bottom_anchor_x = start_center_x; 
             
-            // 2. 强制连线：用两点式划破干扰
+            int top_anchor_x = (valid_cnt > 0) ? (valid_x_sum / valid_cnt) : (XM / 2);
+            int bottom_anchor_x = start_center_x;
             float k = (float)(top_anchor_x - bottom_anchor_x) / (float)(top_scan_y - Y_trigger + 1);
+
+            // 划定单帧斜线
             for (int y = Y_trigger; y <= Deal_Top; y++) {
                 int calc_x = bottom_anchor_x + (int)(k * (y - Y_trigger));
                 if (calc_x < 0) calc_x = 0;
@@ -123,42 +125,33 @@ void go(void)
                 mid_line[y] = (uint8)calc_x;
                 imgOSTU[y][mid_line[y]] = Control_line;
             }
-            cur_state = STATE_NORMAL; // 穿透完成，恢复常态
-        }
-        else if (cur_state == STATE_SMOOTH_OFFSET)
-        {
-            /* 真节点：查路径数组，偏置引导线，启动盲转 */
-            uint8 target_dir = Path_Array[node_index]; /* 0=左转 1=右转 2=直行 */
 
-            if (target_dir == 0) {
-                /* 左转：强制偏向左侧 */
-                for (int y = Y_trigger; y <= Deal_Top; y++) {
-                    mid_line[y] = 0;
-                    imgOSTU[y][(uint8)mid_line[y]] = Control_line;
-                }
-                Yaw_Target = Yaw_Start + 90.0f;
+            if (cur_state == STATE_FALSE_IGNORE) {
+                cur_state = STATE_NORMAL; // 假干扰直接恢复
+            } else {
+                /* 真节点直行：保存轨迹，切入盲转 */
+                blind_k = k;
+                blind_bottom_x = mid_line[Deal_Bottom];
+                Yaw_Target = Yaw_Start;   // 陀螺仪不偏航，保持直走姿态
+                is_blind_turning = 1;     // 交给盲转维持视觉斜线
+                node_index++;
+                cur_state = STATE_BLIND_TURN_YAW;
             }
-            else if (target_dir == 1) {
-                /* 右转：强制偏向右侧 */
-                for (int y = Y_trigger; y <= Deal_Top; y++) {
-                    mid_line[y] = XM;
-                    imgOSTU[y][(uint8)mid_line[y]] = Control_line;
-                }
+        }
+        else if (cur_state == STATE_SMOOTH_OFFSET && Path_Array[node_index] != 2)
+        {
+            /* 真节点转弯：0=左转 1=右转 (保留原逻辑，暴力切角) */
+            uint8 target_dir = Path_Array[node_index]; 
+            if (target_dir == 0) {
+                blind_bottom_x = 0; blind_k = 0;
+                Yaw_Target = Yaw_Start + 90.0f;
+            } else if (target_dir == 1) {
+                blind_bottom_x = XM; blind_k = 0;
                 Yaw_Target = Yaw_Start - 90.0f;
             }
-            else {
-                /* 直行：中间拉线 */
-                for (int y = Y_trigger; y <= Deal_Top; y++) {
-                    mid_line[y] = XM / 2;
-                    imgOSTU[y][(uint8)mid_line[y]] = Control_line;
-                }
-                Yaw_Target = Yaw_Start;
-            }
-
             is_blind_turning = 1;
             node_index++;
             cur_state = STATE_BLIND_TURN_YAW;
-            return; /* 盲转接管，本帧不再做图像处理 */
         }
         else if (cur_state == STATE_L_CORNER || cur_state == STATE_R_CORNER)
         {
