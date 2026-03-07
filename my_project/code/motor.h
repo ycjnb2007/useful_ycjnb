@@ -23,9 +23,11 @@
 #define ENCODER_R_B       TIM2_ENCODER_CH2_P33_6
 
 #define MOTOR_DEAD_ZONE 300
+#define BLIND_EXIT_DIST  1500   // blind turn exit threshold (pulses, ~15cm, calibrate on car!)
 // ================= 全局变量声明 =================
 // 供你的 PID 算法文件外部调用 (极简，只有速度)
-extern float Actual_Speed[2];  // 滤波后的真实车速(脉冲/周期)，[0]左轮 [1]右轮
+extern float Actual_Speed[2];
+extern float blind_distance;  // 滤波后的真实车速(脉冲/周期)，[0]左轮 [1]右轮
 
 // ================= 函数声明 =================
 void Motor_Init(void);                               // 电机底层初始化

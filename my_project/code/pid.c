@@ -2,6 +2,7 @@
 #include "filter.h"
 #include "image_deal_best.h"
 #include "imu660.h"
+#include "motor.h"
 
 int16_t speed_straight_l = 250;
 int16_t speed_straight_s = 180;
@@ -101,10 +102,10 @@ void Control_Loop(void) {
     
     // 对角速度进行积分计算当前偏航角(假设控制周期10ms)
     // 这里的 0.010f 需按实际控制周期（如定时器中断源周期）调整
-    current_yaw += ctrl_state.angular_rate_current * 0.010f; 
+    current_yaw += ctrl_state.angular_rate_current * 0.005f;  // PIT=5ms, dt=0.005 
     
     // ---- 盲转逻辑介入 ----
-    static uint16 blind_straight_cnt = 0; // 新增直行计步器
+    // blind turn straight exit now handled by blind_distance in isr.c // 新增直行计步器
     
     if (is_blind_turning == 1) {
         // Yaw_Target 在外部图像处理检测到弯道时赋值 (如 左转90 右转-90，直行传0)
@@ -112,15 +113,12 @@ void Control_Loop(void) {
         
         // 1. 真节点直走逻辑 (目标偏航角为0附近)
         if (my_abs((int)Yaw_Target) < 1) {
-            blind_straight_cnt++;
+            // (cleared by isr.c), using blind_distance in isr.c
             ctrl_state.angular_rate_target = 0; // 维持强行不打角
             ctrl_state.base_speed = speed_straight_s; 
             
-            // 盲开 30 个动作周期 (通常能过掉十字包裹区)
-            if (blind_straight_cnt > 30) {
-                is_blind_turning = 0;
-                blind_straight_cnt = 0;
-            }
+            // straight blind exit handled by isr.c blind_distance integrator
+            // isr.c sets is_blind_turning=0 when blind_distance > BLIND_EXIT_DIST
         }
         // 2. 正常弯道盲转逻辑
         else {
@@ -139,7 +137,7 @@ void Control_Loop(void) {
         }
     } else {
         blind_turn_finished = 0;
-        blind_straight_cnt = 0;   // 清空直行计步
+        // (cleared by isr.c)   // 清空直行计步
         Yaw_Start = current_yaw; // 常规巡线时挂载 Yaw_Start 锚点
     }
 
