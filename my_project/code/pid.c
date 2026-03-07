@@ -104,24 +104,42 @@ void Control_Loop(void) {
     current_yaw += ctrl_state.angular_rate_current * 0.010f; 
     
     // ---- 盲转逻辑介入 ----
+    static uint16 blind_straight_cnt = 0; // 新增直行计步器
+    
     if (is_blind_turning == 1) {
-        // Yaw_Target 在外部图像处理检测到弯道时赋值 (如 左转90 右转-90)
+        // Yaw_Target 在外部图像处理检测到弯道时赋值 (如 左转90 右转-90，直行传0)
         float yaw_error = Yaw_Target - (current_yaw - Yaw_Start);
         
-        // 阈值设为 5.0，如果到达目标角度，则结束盲转直走（等待图像恢复正常）
-        if (abs(yaw_error) < 5.0f || blind_turn_finished) {
-            blind_turn_finished = 1;
-            ctrl_state.angular_rate_target = 0; 
-            is_blind_turning = 0; // 可以交还给图像
-        } else {
-            // P控制或者给恒定偏航角速度，此处简单使用恒定打角
-            if (yaw_error > 0) ctrl_state.angular_rate_target = 180.0f; 
-            else ctrl_state.angular_rate_target = -180.0f;
+        // 1. 真节点直走逻辑 (目标偏航角为0附近)
+        if (my_abs((int)Yaw_Target) < 1) {
+            blind_straight_cnt++;
+            ctrl_state.angular_rate_target = 0; // 维持强行不打角
+            ctrl_state.base_speed = speed_straight_s; 
             
-            ctrl_state.base_speed = speed_curve; // 盲切速度用弯道速度
+            // 盲开 30 个动作周期 (通常能过掉十字包裹区)
+            if (blind_straight_cnt > 30) {
+                is_blind_turning = 0;
+                blind_straight_cnt = 0;
+            }
+        }
+        // 2. 正常弯道盲转逻辑
+        else {
+            // 阈值设为 5.0，如果到达目标角度，则结束盲转（等待图像恢复正常）
+            if (my_abs((int)yaw_error) < 5 || blind_turn_finished) {
+                blind_turn_finished = 1;
+                ctrl_state.angular_rate_target = 0; 
+                is_blind_turning = 0; // 可以交还给图像
+            } else {
+                // 简单使用恒定打角
+                if (yaw_error > 0) ctrl_state.angular_rate_target = 180.0f; 
+                else ctrl_state.angular_rate_target = -180.0f;
+                
+                ctrl_state.base_speed = speed_curve; // 盲切速度用弯道速度
+            }
         }
     } else {
         blind_turn_finished = 0;
+        blind_straight_cnt = 0;   // 清空直行计步
         Yaw_Start = current_yaw; // 常规巡线时挂载 Yaw_Start 锚点
     }
 
