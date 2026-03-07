@@ -3,7 +3,7 @@
 // ================= 变量定义 =================
 int16 Raw_Pulse[2];            // 存放单次读取到的原始脉冲
 float Actual_Speed[2] = {0,0};
-float blind_distance = 0; // 供外部PID读取的平滑速度
+float Distance_Integral = 0; // 供外部PID读取的平滑速度
 
 // ==============================
 // 第一部分：AT8236 底层驱动逻辑
@@ -120,4 +120,7 @@ void Encoder_Update_Speed(void)
     // 这里的 0.3 和 0.7 是滤波权重，如果你觉得速度响应太慢，可以改成 0.5 和 0.5，甚至0.7和0.3
     Actual_Speed[0] = (float)Raw_Pulse[0] * 0.3f + Actual_Speed[0] * 0.7f;
     Actual_Speed[1] = (float)Raw_Pulse[1] * 0.3f + Actual_Speed[1] * 0.7f;
+
+    // absolute distance accumulation for blind turn
+    Distance_Integral += (my_abs((int16_t)Raw_Pulse[0]) + my_abs((int16_t)Raw_Pulse[1])) / 2.0f;
 }

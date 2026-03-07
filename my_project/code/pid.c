@@ -16,6 +16,7 @@ float gyro_kp      = 1.20f;
 float gyro_kd      = 0.10f;
 float blind_turn_kp = 4.5f;
 float blind_turn_kd = 0.3f;
+extern float Distance_Integral; // From motor.c
 
 float speed_kp     = 18.0f;
 float speed_ki     = 1.50f;
@@ -117,40 +118,40 @@ void Control_Loop(void) {
     
     // ---- 盲转逻辑介入 ----
     // blind turn straight exit now handled by blind_distance in isr.c // 新增直行计步器
+    // ---- arch-compliant blind turn logic (with PD & odometer) ----
+    static float Start_Dist = 0; // blind turn start distance
     
     if (is_blind_turning == 1) {
-        // Yaw_Target 在外部图像处理检测到弯道时赋值 (如 左转90 右转-90，直行传0)
         float yaw_error = Yaw_Target - (yaw_plus - Yaw_Start);
         
-        // 1. 真节点直走逻辑 (目标偏航角为0附近)
+        // [Case A] straight blind turn logic
         if (my_abs((int)Yaw_Target) < 1) {
-            // (cleared by isr.c), using blind_distance in isr.c
-            ctrl_state.angular_rate_target = 0; // 维持强行不打角
+            ctrl_state.angular_rate_target = 0;
             ctrl_state.base_speed = speed_straight_s; 
             
-            // straight blind exit handled by isr.c blind_distance integrator
-            // isr.c sets is_blind_turning=0 when blind_distance > BLIND_EXIT_DIST
+            // Exit based on absolute distance integral (e.g. 1500 pulses)
+            if ((Distance_Integral - Start_Dist) > 1500.0f) {
+                is_blind_turning = 0;
+            }
         }
-        // 2. 正常弯道盲转逻辑
+        // [Case B] curved blind turn logic (90 or -90)
         else {
-            // 阈值设为 5.0，如果到达目标角度，则结束盲转（等待图像恢复正常）
             if (my_abs((int)yaw_error) < 5 || blind_turn_finished) {
                 blind_turn_finished = 1;
                 ctrl_state.angular_rate_target = 0; 
-                is_blind_turning = 0; // 可以交还给图像
+                is_blind_turning = 0; // angle reached, return to vision
             } else {
-                // PD controller: Kp * error - Kd * gyro_z
+                // Positional PD flexible turning
                 ctrl_state.angular_rate_target = blind_turn_kp * yaw_error - blind_turn_kd * gyro_param.gyro_z;
-                if (ctrl_state.angular_rate_target > 250.0f) ctrl_state.angular_rate_target = 250.0f;
-                if (ctrl_state.angular_rate_target < -250.0f) ctrl_state.angular_rate_target = -250.0f;
-                
-                ctrl_state.base_speed = speed_curve; // 盲切速度用弯道速度
+                if(ctrl_state.angular_rate_target > 250.0f) ctrl_state.angular_rate_target = 250.0f;
+                if(ctrl_state.angular_rate_target < -250.0f) ctrl_state.angular_rate_target = -250.0f;
+                ctrl_state.base_speed = speed_curve;
             }
         }
     } else {
         blind_turn_finished = 0;
-        // (cleared by isr.c)   // 清空直行计步
-        Yaw_Start = yaw_plus; // 常规巡线时挂载 Yaw_Start 锚点
+        Yaw_Start = yaw_plus;             // refresh anchor
+        Start_Dist = Distance_Integral;   // refresh distance anchor
     }
 
     pid_gyro_middle.error = ctrl_state.angular_rate_target - ctrl_state.angular_rate_current;
