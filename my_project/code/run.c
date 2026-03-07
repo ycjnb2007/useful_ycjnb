@@ -97,8 +97,15 @@ void go(void)
            (cur_state == STATE_SMOOTH_OFFSET && Path_Array[node_index] == 2))
         {
             /* 假干扰 或 真节点直行：计算动态上下锚点，画斜线诱导换道 */
-            int top_scan_y = Y_trigger + Length_5cm[Y_trigger] * 3; // 向上取约 15cm
-            if (top_scan_y > Deal_Top - 5) top_scan_y = Deal_Top - 5;
+            int top_scan_y = Y_trigger;
+            uint8 temp_y2 = (uint8)Y_trigger;
+            for(int i = 0; i < 3; i++) {  // 累积迭代越过 15cm 干扰区（透视非线性，不能用乘法）
+                if(temp_y2 >= Deal_Top) break;
+                top_scan_y += (int)Length_5cm[temp_y2];
+                temp_y2 += (int)Length_5cm[temp_y2];
+            }
+            top_scan_y += 2; // 稍微越过干扰区顶部往外找
+            if (top_scan_y > Deal_Top - 2) top_scan_y = Deal_Top - 5; // 防越界
             
             int valid_cnt = 0;
             int valid_x_sum = 0;
