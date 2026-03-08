@@ -3,8 +3,6 @@
 
 #include "zf_common_headfile.h"
 
-// ---------------- 必须外部导出的调参全局变量 ----------------
-// 这些变量代替了之前的 #define，让它们在运行时可以被 UI 修改
 extern int16_t speed_straight_l;
 extern int16_t speed_straight_s;
 extern int16_t speed_curve;
@@ -15,11 +13,14 @@ extern float turn_kd;
 
 extern float gyro_kp;
 extern float gyro_kd;
+extern float blind_turn_kp;
+extern float blind_turn_kd;
 
 extern float speed_kp;
 extern float speed_ki;
+extern float speed_kff;
+extern float planned_speed;
 
-// ---------------- 数据结构定义 ----------------
 typedef struct {
     float Kp;
     float Kd;
@@ -56,5 +57,7 @@ extern System_Control_State_t ctrl_state;
 
 void PID_Init(void);
 void Control_Loop(void);
+float Low_Pass_Filter(float current_val, float last_val, float alpha);
+float Calc_Incremental_PI(Incremental_PI_t *pid, float target, float current);
 
 #endif

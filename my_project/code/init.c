@@ -1,37 +1,44 @@
 #include "init.h"
-#include "image_deal_best.h"
-#include "imu660.h"
-#include "motor.h"
-#include "pid.h"
-#include "filter.h"
 
 /******************************************************************************
-* 函数名称     : init
-* 描述         : 系统总初始化，上电后调用一次
-******************************************************************************/
-void init(void)
-{
-    /* 1. 电机与编码器初始化 */
-    Motor_Init();
-    Encoder_Init();
+ * 函数名称     : init
+ * 描述         : 系统全量初始化，统一在此调用，保持 main 函数整洁
+ * 进入参数     : void
+ * 返回参数     : void
+ ******************************************************************************/
+void init(void) {
+  /* 1. 摄像头初始化 */
+  mt9v03x_init();
 
-    /* 2. IMU660RB 陀螺仪初始化 + 零漂校准（需要静止约1秒） */
-    imu660rb_init();
-    gyro_zero_param_init();
-    acc_zero_param_init();
+  /* 2. TFT 屏幕初始化（横屏） */
+  tft180_set_dir(TFT180_CROSSWISE);
+  tft180_init();
 
-    /* 3. PID 参数初始化 */
-    PID_Init();
+  /* 3. 电机与编码器初始化 */
+  Motor_Init();
+  Encoder_Init();
 
-    /* 4. 低通滤波器初始化（编码器速度用） */
-    LPF_InitByAlpha(&velocity_filter, 0.3f);
+  /* 4. IMU660RB 初始化 + 零偏校准（至少等待 500ms，等陀螺仪稳定） */
+  imu660rb_init();
+  system_delay_ms(500);
+  gyro_zero_param_init();
+  acc_zero_param_init();
 
-    /* 5. 摄像头初始化（逐飞库自带，通常在 main 里已调用） */
-    /* mt9v03x_init(); */
+  /* 5. PID 结构体初始化（设置输出限幅） */
+  PID_Init();
 
-    /* 6. 图像处理初始状态 */
-    standard();
-    cur_state = STATE_NORMAL;
-    is_blind_turning = 0;
-    node_index = 0;
+  /* 6. 速度低通滤波器初始化（10Hz 截止频率，5ms 控制周期） */
+  LPF_InitByFrequency(&velocity_filter, 10.0f, 0.005f);
+
+  /* 7. 图像状态机复位 */
+  standard();
+  cur_state = STATE_NORMAL;
+  is_blind_turning = 0;
+  node_index = 0;
+
+  /* 8. UI 菜单初始化 */
+  UI_Menu_Init();
+
+  /* 9. 开启定时器中断：5ms 一次触发 cc60_pit_ch0_isr（控制循环） */
+  pit_ms_init(CCU60_CH0, 5);
 }

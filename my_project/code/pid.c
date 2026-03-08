@@ -16,12 +16,14 @@ float gyro_kp      = 1.20f;
 float gyro_kd      = 0.10f;
 float blind_turn_kp = 4.5f;
 float blind_turn_kd = 0.3f;
-extern float Distance_Integral; // From motor.c
+extern float Distance_Integral;
 
 float speed_kp     = 18.0f;
 float speed_ki     = 1.50f;
 
-// ???????????
+float speed_kff    = 15.0f;
+float planned_speed = 0.0f;
+
 System_Control_State_t ctrl_state;
 Positional_PD_t  pid_turn_outer;
 Positional_PD_t  pid_gyro_middle;
@@ -49,12 +51,8 @@ float Calc_Incremental_PI(Incremental_PI_t *pid, float target, float current) {
     return pid->output;
 }
 
-#include "run.h" // Ensure cur_state is accessible
-extern RunState cur_state;
-extern float Actual_Speed[2];
 
 float Outer_Loop_Camera(void) {
-    // 1. Dynamic lookahead
     float current_v = (Actual_Speed[0] + Actual_Speed[1]) / 2.0f;
     uint8_t dynamic_lookahead = 10 + (uint8_t)(current_v * 0.05f); 
     uint8_t aim_row = Deal_Bottom + dynamic_lookahead;
@@ -67,6 +65,7 @@ float Outer_Loop_Camera(void) {
         case STATE_SMOOTH_OFFSET:
         case STATE_L_CORNER:
         case STATE_R_CORNER:
+        case STATE_BLEND:
             aim_row = Deal_Bottom + 10;
             break;
         default:
@@ -75,19 +74,41 @@ float Outer_Loop_Camera(void) {
             break;
     }
     
-    if(aim_row > Deal_Top)  aim_row = Deal_Top;
-    if(aim_row < Deal_Bottom + 2) aim_row = Deal_Bottom + 2;
+    if(aim_row > Deal_Top - 5)  aim_row = Deal_Top - 5;
+    if(aim_row < Deal_Bottom + 5) aim_row = Deal_Bottom + 5;
     
-    float weighted_mid = (float)mid_line[aim_row];
-    if (aim_row >= 2 && aim_row <= YY - 2) {
-        weighted_mid =  mid_line[aim_row - 2] * 0.1f +
-                        mid_line[aim_row - 1] * 0.2f +
-                        mid_line[aim_row]     * 0.4f +
-                        mid_line[aim_row + 1] * 0.2f +
-                        mid_line[aim_row + 2] * 0.1f;
+    float sum_y = 0, sum_x = 0, sum_yx = 0, sum_y2 = 0;
+    int fit_points = 10; 
+    int start_y = aim_row - fit_points/2;
+    for (int i = 0; i < fit_points; i++) {
+        int y_val = start_y + i;
+        float x_val = (float)mid_line[y_val];
+        sum_y += y_val;
+        sum_x += x_val;
+        sum_yx += y_val * x_val;
+        sum_y2 += y_val * y_val;
     }
+    float mean_y = sum_y / fit_points;
+    float mean_x = sum_x / fit_points;
     
-    ctrl_state.camera_error = (XM / 2.0f) - weighted_mid; 
+    float denominator = sum_y2 - fit_points * mean_y * mean_y;
+    float slope_k = 0;
+    if (denominator > 0.1f) {
+        slope_k = (sum_yx - fit_points * mean_y * mean_x) / denominator;
+    }
+    float intercept_b = mean_x - slope_k * mean_y;
+    
+    // 【最小二乘法 - 航向角与横向偏移融合计算】
+    // 说明：offset_x 表示在当前前瞻行横向车体的偏移量；slope_k 表示连线的斜率，反映车头偏角（航向角）。
+    // 调参建议：
+    // K1 是截距权重，控制车子必须在线中心。K1 过大容易画蛇画龙（震荡）。
+    // K2 是斜率(航向角)权重，主要用于消除车头歪的情况。如果直线跑得稳但是入弯反应极度迟钝，适当增加 K2！
+    float offset_x = (slope_k * aim_row + intercept_b) - (XM / 2.0f);
+    
+    float K1 = 1.0f;    // 横向偏差系数
+    float K2 = 15.0f;   // 航向角偏差系数 (前瞻视野中的斜率放大系数)
+    ctrl_state.camera_error = -(K1 * offset_x + K2 * slope_k);
+    
     pid_turn_outer.error = ctrl_state.camera_error;
     
     float current_kp = turn_kp_base;
@@ -97,26 +118,27 @@ float Outer_Loop_Camera(void) {
         case STATE_NORMAL:
         case STATE_CAPACITY_CHECK:
         case STATE_CHECK_NODE:
-            current_kp = turn_kp_base + turn_kp_var * fabs(pid_turn_outer.error);
+            current_kp = turn_kp_base + turn_kp_var * fabsf(pid_turn_outer.error);
             current_kd = turn_kd;
             break;
-            
         case STATE_FALSE_IGNORE:
         case STATE_WAIT_NODE:
             current_kp = turn_kp_base * 0.4f; 
             current_kd = turn_kd * 2.5f;     
             break;
-            
         case STATE_SMOOTH_OFFSET:
         case STATE_L_CORNER:
         case STATE_R_CORNER:
             current_kp = turn_kp_base * 1.5f; 
             current_kd = turn_kd * 0.3f;      
             break;
-            
         case STATE_BLIND_TURN_YAW:
             current_kp = 0;
             current_kd = 0;
+            break;
+        case STATE_BLEND:
+            current_kp = turn_kp_base;
+            current_kd = turn_kd;
             break;
     }
     
@@ -132,13 +154,9 @@ float Outer_Loop_Camera(void) {
     return pid_turn_outer.output;
 }
 
-
-// float current_yaw = 0.0f; // removed, using yaw_plus from imu
 uint8_t blind_turn_finished = 0;
 
 void Control_Loop(void) {
-
-    // ??????????????潩???????????????????????? UI ???潩??????潩
     pid_gyro_middle.Kp = gyro_kp;
     pid_gyro_middle.Kd = gyro_kd;
     pid_speed_L.Kp = speed_kp; pid_speed_L.Ki = speed_ki;
@@ -160,47 +178,50 @@ void Control_Loop(void) {
     }
 
     ctrl_state.angular_rate_target = Outer_Loop_Camera();
-
-    float raw_gyro = gyro_param.gyro_z; // 获取Z轴角速度
     
-    // 如果滤波器未初始化，调用filter库初始化(Alpha 0.6)
+    // 【盲转过渡态 (STATE_BLEND) 离合器】
+    // 说明：盲转结束时交还控制权瞬间，利用下降的 alpha 将陀螺仪权重(0)逐渐淡出，镜头权重(1.0-alpha)逐渐上升。
+    // 调参建议：0.05f 表示 1/20 个周期（如 100ms内平滑切入）。如果交接还是抽搐，减小 0.05f（如 0.02f），延长过渡时间。
+    if (cur_state == STATE_BLEND) {
+        static float blend_alpha = 1.0f; // 逐渐减小
+        blend_alpha -= 0.05f; 
+        if (blend_alpha <= 0.0f) {
+            blend_alpha = 0.0f;
+            cur_state = STATE_NORMAL;
+            blend_alpha = 1.0f;
+        }
+        // 陀螺仪目标角速度在此刻可近似认为是 0 或者是维持直线。此处与 0.0 融合。
+        ctrl_state.angular_rate_target = (1.0f - blend_alpha) * ctrl_state.angular_rate_target + blend_alpha * 0.0f;
+    }
+
+    float raw_gyro = gyro_param.gyro_z; 
+    
     if (!velocity_filter.initialized) {
         LPF_InitByAlpha(&velocity_filter, 0.6f);
     }
     
-    // 使用用户 filter.h 的滤波器 updating
     ctrl_state.angular_rate_current = LPF_Update(&velocity_filter, raw_gyro);
     
-    // 对角速度进行积分计算当前偏航角(假设控制周期10ms)
-    // 这里的 0.010f 需按实际控制周期（如定时器中断源周期）调整
-    // current_yaw += ... // removed, avoid dual integration
-    
-    // ---- 盲转逻辑介入 ----
-    // blind turn straight exit now handled by blind_distance in isr.c // 新增直行计步器
-    // ---- arch-compliant blind turn logic (with PD & odometer) ----
-    static float Start_Dist = 0; // blind turn start distance
+    static float Start_Dist = 0; 
     
     if (is_blind_turning == 1) {
         float yaw_error = Yaw_Target - (yaw_plus - Yaw_Start);
         
-        // [Case A] straight blind turn logic
-        if (my_abs((int)Yaw_Target) < 1) {
+        if (abs((int)Yaw_Target) < 1) {
             ctrl_state.angular_rate_target = 0;
             ctrl_state.base_speed = speed_straight_s; 
             
-            // Exit based on absolute distance integral (e.g. 1500 pulses)
             if ((Distance_Integral - Start_Dist) > 1500.0f) {
                 is_blind_turning = 0;
             }
         }
-        // [Case B] curved blind turn logic (90 or -90)
         else {
-            if (my_abs((int)yaw_error) < 5 || blind_turn_finished) {
+            if (abs((int)yaw_error) < 5 || blind_turn_finished) {
                 blind_turn_finished = 1;
                 ctrl_state.angular_rate_target = gyro_param.gyro_z * 0.5f; 
-                is_blind_turning = 0; // angle reached
+                is_blind_turning = 0; 
+                cur_state = STATE_BLEND;
             } else {
-                // Positional PD flexible turning
                 ctrl_state.angular_rate_target = blind_turn_kp * yaw_error - blind_turn_kd * gyro_param.gyro_z;
                 if(ctrl_state.angular_rate_target > 250.0f) ctrl_state.angular_rate_target = 250.0f;
                 if(ctrl_state.angular_rate_target < -250.0f) ctrl_state.angular_rate_target = -250.0f;
@@ -209,8 +230,8 @@ void Control_Loop(void) {
         }
     } else {
         blind_turn_finished = 0;
-        Yaw_Start = yaw_plus;             // refresh anchor
-        Start_Dist = Distance_Integral;   // refresh distance anchor
+        Yaw_Start = yaw_plus;             
+        Start_Dist = Distance_Integral;   
     }
 
     pid_gyro_middle.error = ctrl_state.angular_rate_target - ctrl_state.angular_rate_current;
@@ -219,15 +240,36 @@ void Control_Loop(void) {
     pid_gyro_middle.last_error = pid_gyro_middle.error;
     ctrl_state.speed_diff = pid_gyro_middle.output;
 
-    ctrl_state.target_left_speed  = ctrl_state.base_speed - ctrl_state.speed_diff;
-    ctrl_state.target_right_speed = ctrl_state.base_speed + ctrl_state.speed_diff;
+    // 【速度控制斜坡防滑处理】
+    // 说明：直接阶跃会引发轮胎空转或抽搐打滑。
+    // target_step 指每次控制周期的最大速度增量。
+    // 调参建议：如果加速打滑，请把 target_step 调小（如 1.5f 或更低）；如果提速不够猛，适当增加。
+    float target_step = 3.0f;
+    if (planned_speed < ctrl_state.base_speed - target_step) {
+        planned_speed += target_step;
+    } else if (planned_speed > ctrl_state.base_speed + target_step) {
+        planned_speed -= target_step;
+    } else {
+        planned_speed = ctrl_state.base_speed;
+    }
 
-    // ???? Actual_Speed ??????????????? motor.c ????? extern
+    ctrl_state.target_left_speed  = planned_speed - ctrl_state.speed_diff;
+    ctrl_state.target_right_speed = planned_speed + ctrl_state.speed_diff;
+
     ctrl_state.current_left_speed = Actual_Speed[0];
     ctrl_state.current_right_speed = Actual_Speed[1];
 
-    ctrl_state.output_left_pwm  = (int16_t)Calc_Incremental_PI(&pid_speed_L, ctrl_state.target_left_speed, ctrl_state.current_left_speed);
-    ctrl_state.output_right_pwm = (int16_t)Calc_Incremental_PI(&pid_speed_R, ctrl_state.target_right_speed, ctrl_state.current_right_speed);
+    // 【电机前馈控制】
+    // 说明：(K_ff * target_speed) 直接给电机兜底基础 PWM 输出，PI 只做微小修正。极大改善响应速度！
+    // 调参建议：先将 K_ff 置 0，把电机调到能跑，再加 K_ff 使设定速度和响应速度贴合。
+    float l_total = (speed_kff * ctrl_state.target_left_speed)  + Calc_Incremental_PI(&pid_speed_L, ctrl_state.target_left_speed, ctrl_state.current_left_speed);
+    float r_total = (speed_kff * ctrl_state.target_right_speed) + Calc_Incremental_PI(&pid_speed_R, ctrl_state.target_right_speed, ctrl_state.current_right_speed);
+    
+    if (l_total > 9500.0f) l_total = 9500.0f; else if (l_total < -9500.0f) l_total = -9500.0f;
+    if (r_total > 9500.0f) r_total = 9500.0f; else if (r_total < -9500.0f) r_total = -9500.0f;
+    
+    ctrl_state.output_left_pwm  = (int16_t)l_total;
+    ctrl_state.output_right_pwm = (int16_t)r_total;
 
     if (system_running == 1) {
         Motor_Control(ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
@@ -235,3 +277,5 @@ void Control_Loop(void) {
         Motor_Control(0, 0);
     }
 }
+
+// 强制 IDE 刷新时间戳：f82c8131
