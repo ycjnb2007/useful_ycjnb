@@ -98,13 +98,13 @@ extern uint8 Y_trigger; // 触发动态检测框的起始行
 extern volatile RUN_Dir run_dir; // 当前运行方向
 
 // 图像阈值处理
-extern uint8_t nowThreshold;         // 当前大津法阈值
-extern int minGrayscale;             // 最小灰度限制
-extern int maxGrayscale;             // 最大灰度限制
-extern uint8_t minThreshold;         // 最小阈值限制
-extern uint8_t maxThreshold;         // 最大阈值限制
-extern int minGray;                  // 图像最小灰度值
-extern int maxGray;                  // 图像最大灰度值
+extern uint8_t nowThreshold; // 当前大津法阈值
+extern int minGrayscale;     // 最小灰度限制
+extern int maxGrayscale;     // 最大灰度限制
+extern uint8_t minThreshold; // 最小阈值限制
+extern uint8_t maxThreshold; // 最大阈值限制
+extern int minGray;          // 图像最小灰度值
+extern int maxGray;          // 图像最大灰度值
 extern uint8 img_threshold_group[3];
 extern uint16_t histogram[256];
 extern uint8 close_Threshold;
@@ -140,7 +140,9 @@ extern uint8 b_lost_num;
 extern uint8 t_lost_tip, l_lost_tip, r_lost_tip, b_lost_tip;
 
 // 丢失边界中心点
+extern uint8 dis_Solidline;
 extern uint32 t_center[2];
+extern uint32 b_center[5];
 extern uint8 l_center[5];
 extern uint8 r_center[5];
 
@@ -152,11 +154,11 @@ extern float k2[YM];          // 高度校正系数
 
 // ==================== 函数声明 ====================
 void getGrayscaleHistogram(void); // 灰度直方图统计
-void standard(void);          // 初始化标准化处理
-void image_copy();            // 复制图像给imggray[][]
-uint8 getOSTUThreshold(void); // 大津法阈值计算
-void Get_imgOSTU(void);       // 二值化图像获取及其侧边反光暴力消除
-uint8 get_start_point(void);  // 寻找起点
+void standard(void);              // 初始化标准化处理
+void image_copy();                // 复制图像给imggray[][]
+uint8 getOSTUThreshold(void);     // 大津法阈值计算
+void Get_imgOSTU(void);           // 二值化图像获取及其侧边反光暴力消除
+uint8 get_start_point(void);      // 寻找起点
 uint8 search_l_r(uint8 start_l_x, uint8 start_l_y, uint8 start_r_x,
                  uint8 start_r_y);     // 八邻域探索及 Trigger 2.0
 uint8 Check_Node_Box(uint8 trigger_y); // 【新增】依据动态框甄别真假节点
