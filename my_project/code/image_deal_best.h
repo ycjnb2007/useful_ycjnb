@@ -61,8 +61,8 @@ typedef enum {
   STATE_CAPACITY_CHECK, // 视野容量检测
   STATE_WAIT_NODE,      // 盲开一小段等待路口沉下
   STATE_L_CORNER,       // 纯左直角弯
-  STATE_R_CORNER        // 纯右直角弯
-      STATE_BLEND
+  STATE_R_CORNER,       // 纯右直角弯
+  STATE_BLEND           // 盲转过渡态
 } RunState;
 
 // ==================== 运行方向枚举 ====================
@@ -88,6 +88,8 @@ extern uint8 is_blind_turning; // 【新增】当前运行状态机
 
 // 全局转弯方向数组 (由用户自行在策略主循环维护或查表)
 // 比如 Path_Array 里面存了整条赛道经过节点的转向指令：0为左，1为右，2为直行
+extern uint8 Path_Array[20];
+extern uint8 node_index;
 
 // 动态框触发及偏置相关
 extern uint8 Y_trigger; // 触发动态检测框的起始行
@@ -103,7 +105,11 @@ extern uint8_t minThreshold;         // 最小阈值限制
 extern uint8_t maxThreshold;         // 最大阈值限制
 extern int minGray;                  // 图像最小灰度值
 extern int maxGray;                  // 图像最大灰度值
-extern uint8 img_threshold_group[3]; // 分区阈值：近、中、远景
+extern uint8 img_threshold_group[3];
+extern uint16_t histogram[256];
+extern uint8 close_Threshold;
+extern uint8 mid_Threshold;
+extern uint8 far_Threshold; // 分区阈值：近、中、远景
 
 // 图像存储数组
 extern uint8 imgGray[IMG_H][IMG_W]; // 原始灰度图像
@@ -129,8 +135,14 @@ extern uint32 r_data_statics;    // 右边界点数量
 extern uint8 hightest;           // 巡线最高点行数
 
 // 丢失边界统计
+extern uint8 t_lost_num, l_lost_num, r_lost_num;
+extern uint8 b_lost_num;
+extern uint8 t_lost_tip, l_lost_tip, r_lost_tip, b_lost_tip;
 
 // 丢失边界中心点
+extern uint32 t_center[2];
+extern uint8 l_center[5];
+extern uint8 r_center[5];
 
 // 几何校正表（像素到实际距离转换）
 extern float white_width[YM]; // 每行标准赛道宽度（像素）
@@ -139,6 +151,7 @@ extern float k1[YM];          // 宽度校正系数
 extern float k2[YM];          // 高度校正系数
 
 // ==================== 函数声明 ====================
+void getGrayscaleHistogram(void); // 灰度直方图统计
 void standard(void);          // 初始化标准化处理
 void image_copy();            // 复制图像给imggray[][]
 uint8 getOSTUThreshold(void); // 大津法阈值计算

@@ -28,7 +28,8 @@
 // ================= 全局变量声明 =================
 // 供你的 PID 算法文件外部调用 (极简，只有速度)
 extern float Actual_Speed[2];
-extern float blind_distance; // 滤波后的真实车速(脉冲/周期)，[0]左轮 [1]右轮
+extern float blind_distance;
+extern float Distance_Integral; // 滤波后的真实车速(脉冲/周期)，[0]左轮 [1]右轮
 
 // ================= 函数声明 =================
 void Motor_Init(void);                            // 电机底层初始化

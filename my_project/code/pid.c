@@ -16,7 +16,6 @@ float gyro_kp      = 1.20f;
 float gyro_kd      = 0.10f;
 float blind_turn_kp = 4.5f;
 float blind_turn_kd = 0.3f;
-extern float Distance_Integral;
 
 float speed_kp     = 18.0f;
 float speed_ki     = 1.50f;

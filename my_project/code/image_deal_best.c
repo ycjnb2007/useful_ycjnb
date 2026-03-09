@@ -9,21 +9,32 @@ float Yaw_Target = 0;
 uint8 Path_Array[20] = {1, 0, 1, 2, 0, 0};
 uint8 node_index = 0;
 uint8 is_blind_turning = 0; // 核心状态机：当前工作状态
-uint8 Y_trigger = 0;        // 触发动态检测框的起始行
+uint8 Y_trigger = 0;
+// 丢失边界统计变量
+uint8 t_lost_num = 0, l_lost_num = 0, r_lost_num = 0;
+uint8 b_lost_num = 0;
+uint32 t_center[2] = {0};
+uint8 l_center[5] = {0};
+uint8 r_center[5] = {0};
+// 触发动态检测框的起始行
 // 真节点路线规划数组：0表示左转，1表示右转，2表示直行
 // （需要用户在外部主控制逻辑中根据发车点选择不同的数组，此处置为示范）
 // ===============================================================
 volatile RUN_Dir run_dir = Right; // 初始运行方向为右转
 // 图像处理状态
 // 图像阈值处理
-uint8_t nowThreshold = 0;     // 当前阈值
-int minGrayscale = 40;        // 最小灰度限制
-int maxGrayscale = 160;       // 最大灰度限制
-int minGray = 0;              // 图像最小灰度值
-int maxGray = 0;              // 图像最大灰度值
-uint8_t minThreshold = 70;    // 最小阈值限制
-uint8_t maxThreshold = 160;   // 最大阈值限制
-uint8 img_threshold_group[3]; // 分区阈值：近、中、远景
+uint8_t nowThreshold = 0;   // 当前阈值
+int minGrayscale = 40;      // 最小灰度限制
+int maxGrayscale = 160;     // 最大灰度限制
+int minGray = 0;            // 图像最小灰度值
+int maxGray = 0;            // 图像最大灰度值
+uint8_t minThreshold = 70;  // 最小阈值限制
+uint8_t maxThreshold = 160; // 最大阈值限制
+uint8 img_threshold_group[3];
+uint16_t histogram[256];   // 灰度直方图
+uint8 close_Threshold = 0; // 近景阈值补偿
+uint8 mid_Threshold = 0;   // 中景阈值补偿
+uint8 far_Threshold = 0;   // 远景阈值补偿 // 分区阈值：近、中、远景
 // 图像存储数组
 uint8 imgGray[IMG_H][IMG_W];   // 原始灰度图像
 uint8 imgTran[YM][XM];         // 临时过渡图像
@@ -178,6 +189,37 @@ int my_abs(int value) {
  * 进入参数     : void
  * 返回参数     : nowThreshold 大津法阈值
  ******************************************************************************/
+/******************************************************************************
+ * 函数名称     : getGrayscaleHistogram
+ * 描述         : 灰度直方图统计（只扫ROI中心XM列）
+ * 进入参数     : void
+ * 返回参数     : void
+ ******************************************************************************/
+void getGrayscaleHistogram(void) {
+  memset(histogram, 0, sizeof(histogram));
+  minGray = 255;
+  maxGray = 0;
+
+  int start_y = IMG_H - YM;
+  int end_y = IMG_H - 1;
+  int start_x = (IMG_W - XM) / 2;
+  int end_x = start_x + XM - 1;
+
+  // 老老实实按行、按列双重遍历，跳过无用的 Margin 区域
+  for (int y = start_y; y <= end_y; y++) {
+    for (int x = start_x; x <= end_x; x++) {
+      uint8_t pixel_val = imgGray[y][x];
+
+      if (pixel_val < minGray)
+        minGray = pixel_val;
+      if (pixel_val > maxGray)
+        maxGray = pixel_val;
+
+      histogram[pixel_val]++;
+    }
+  }
+}
+
 uint8 getOSTUThreshold(void) {
   getGrayscaleHistogram();
   uint32_t sum = 0, valueSum = 0;
