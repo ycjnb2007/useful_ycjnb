@@ -13,6 +13,7 @@ uint8 Y_trigger = 0;
 // 丢失边界统计变量
 uint8 t_lost_num = 0, l_lost_num = 0, r_lost_num = 0;
 uint8 b_lost_num = 0;
+uint8 t_lost_tip = 0, l_lost_tip = 0, r_lost_tip = 0, b_lost_tip = 0;
 uint32 t_center[2] = {0};
 uint8 l_center[5] = {0};
 uint8 r_center[5] = {0};

@@ -246,9 +246,11 @@ void Control_Loop(void) {
   if (is_blind_turning == 1) {
     float yaw_error = Yaw_Target - (yaw_plus - Yaw_Start);
 
-    if (abs((int)Yaw_Target) < 1) {
+    // Bug1修复：用偏差角判定直行盲转，而非绝对值（Yaw_Target是累计角，远非0）
+    if (abs((int)(Yaw_Target - Yaw_Start)) < 2 ||
+        Path_Array[node_index - 1] == 2) {
       ctrl_state.angular_rate_target = 0;
-      ctrl_state.base_speed = speed_straight_s;
+      ctrl_state.base_speed = speed_straight_l; // 直行过节点，要冲出去
 
       if ((Distance_Integral - Start_Dist) > 1500.0f) {
         is_blind_turning = 0;

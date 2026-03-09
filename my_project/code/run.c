@@ -136,7 +136,16 @@ void go(void) {
       }
 
       if (cur_state == STATE_FALSE_IGNORE) {
-        cur_state = STATE_NORMAL; // 假干扰直接恢复
+        // Bug2修复：维持假干扰状态一段距离，确保 PID 生效、斜线不被覆盖
+        static uint32 ignore_dist_start = 0;
+        if (ignore_dist_start == 0)
+          ignore_dist_start = Distance_Integral;
+
+        if (Distance_Integral - ignore_dist_start > 800) { // 约 8cm 盲冲
+          cur_state = STATE_NORMAL;
+          ignore_dist_start = 0;
+        }
+        // 不立刻切 NORMAL，下方第五步巡线不会触发
       } else {
         /* 真节点直行：保存轨迹，切入盲转 */
         blind_k = k;
