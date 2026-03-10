@@ -189,7 +189,7 @@ void go(void) {
 
     /* ========== 第五步：正常巡线补线 ========== */
     if (cur_state == STATE_NORMAL) {
-      Get_lost_tip(30);
+      Get_lost_tip(3);
       Get_start_center();
 
       if (t_lost_num >= 1 && l_lost_num == 0 && r_lost_num == 0) {
