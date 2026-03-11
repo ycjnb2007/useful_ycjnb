@@ -35,9 +35,9 @@ uint8_t minThreshold = 70;  // 最小阈值限制
 uint8_t maxThreshold = 160; // 最大阈值限制
 uint8 img_threshold_group[3];
 uint16_t histogram[256];   // 灰度直方图
-uint8 close_Threshold = 0; // 近景阈值补偿
-uint8 mid_Threshold = 0;   // 中景阈值补偿
-uint8 far_Threshold = 0;   // 远景阈值补偿 // 分区阈值：近、中、远景
+uint8 close_Threshold = 0; // 近景阈值补偿 5-15
+uint8 mid_Threshold = 0;   // 中景阈值补偿 5-15
+uint8 far_Threshold = 0;   // 远景阈值补偿 10-25
 // 图像存储数组
 uint8 imgGray[IMG_H][IMG_W];   // 原始灰度图像
 uint8 imgTran[YM][XM];         // 临时过渡图像
@@ -229,16 +229,15 @@ uint8 getOSTUThreshold(void) {
   uint64_t sigma = 0, maxSigma = 0;
   float w1 = 0, w2 = 0;
   int32_t u1 = 0, u2 = 0;
-  uint8 min = minGray;
-  uint8 max = maxGray;
-  
-  if (max < minThreshold) return minThreshold;
-  if (min > maxThreshold) return maxThreshold;
-  if (max - min <= 5) return (max + min) / 2;
-
+  uint8 min = 0, max = 255;
+  min = minGray;
+  max = maxGray;
+  if (max < minThreshold)
+    return minThreshold;
+  if (min > maxThreshold)
+    return maxThreshold;
   min = min < minGrayscale ? minGrayscale : min;
   max = max > maxGrayscale ? maxGrayscale : max;
-  
   uint32_t lowSum[256] = {0};
   uint32_t lowValueSum[256] = {0};
   for (uint16_t i = min; i <= max; ++i) {
@@ -247,30 +246,23 @@ uint8 getOSTUThreshold(void) {
     lowSum[i] = sum;
     lowValueSum[i] = valueSum;
   }
-  
-  if (sum == 0) return 128; 
-
   for (uint16_t i = min; i < max + 1; ++i) {
     w1 = (float)lowSum[i] / sum;
-    w2 = 1.0f - w1;
-    
-    if (w1 < 0.0001f || w2 < 0.0001f) continue;
-
+    w2 = 1 - w1;
     u1 = (int32_t)(lowValueSum[i] / w1);
     u2 = (int32_t)((valueSum - lowValueSum[i]) / w2);
     sigma = (uint64_t)(w1 * w2 * (u1 - u2) * (u1 - u2));
-    
     if (sigma >= maxSigma) {
       maxSigma = sigma;
       nowThreshold = i;
-    } 
+    } else {
+      break;
+    }
   }
-  
   nowThreshold = nowThreshold < minThreshold ? minThreshold : nowThreshold;
   nowThreshold = nowThreshold > maxThreshold ? maxThreshold : nowThreshold;
   return nowThreshold;
 }
-
 /******************************************************************************
  * 函数名称     : Get_imgOSTU
  * 描述         : 大津法二值化处理图像

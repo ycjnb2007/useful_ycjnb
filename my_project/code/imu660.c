@@ -92,7 +92,9 @@ void gyro_transform_value(void)
     gyro_param.gyro_x = imu660rb_gyro_transition( ((float)imu660rb_gyro_x - gyro_zero_param.Xdata) );
     gyro_param.gyro_y = imu660rb_gyro_transition( ((float)imu660rb_gyro_y - gyro_zero_param.Ydata) );
     gyro_param.gyro_z = -imu660rb_gyro_transition( ((float)imu660rb_gyro_z - gyro_zero_param.Zdata) );
-//板子上z轴是反的，加了个负号
+    if (fabsf((float)gyro_param.gyro_z) < 0.4f) {
+        gyro_param.gyro_z = 0;
+    }//板子上z轴是反的，加了个负号
 }
 // 单位转化为度数
 void acc_transform_value(void)
@@ -108,11 +110,7 @@ void acc_transform_value(void)
 // 中值积分算角度 (结合逐飞思路重写版)
 void gyro_yaw_integral(void)
 {
-    // 【直接注释掉死区】相信我们前面正确的零偏标定
-        
-        
-        
-
+    
     yaw_now = gyro_param.gyro_z;
 
     // 2. 纯净的中值积分：(上次角速度 + 本次角速度)/2 * 中断时间 dt
