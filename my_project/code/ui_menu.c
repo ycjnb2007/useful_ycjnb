@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "pid.h"
 #include "image_deal_best.h"
+#include "run.h"
 
 #define SCR_W 160
 #define SCR_H 128
@@ -19,6 +20,7 @@ typedef enum {
     PAGE_SPEED,
     PAGE_TURN_PID,
     PAGE_MOTOR_PID,
+    PAGE_IMG_THRES,    // <--- 新增阈值页面
     PAGE_MY_A,         // <--- 新增的备用页 A
     PAGE_MAX
 } Page_Enum;
@@ -49,12 +51,21 @@ static Param_Item_t turn_params[] = {
     {"TrnKv", &turn_kp_var,  0.01f, 0},
     {"TrnKd", &turn_kd,      0.1f,  0},
     {"GyoKp", &gyro_kp,      0.1f,  0},
-    {"GyoKd", &gyro_kd,      0.05f, 0}
+    {"GyoKd", &gyro_kd,      0.05f, 0},
+    {"BldKp", &blind_turn_kp, 0.1f, 0}, 
+    {"BldKd", &blind_turn_kd, 0.05f,0}
 };
 
 static Param_Item_t motor_params[] = {
     {"MotKp", &speed_kp, 1.0f, 0},
-    {"MotKi", &speed_ki, 0.1f, 0}
+    {"MotKi", &speed_ki, 0.1f, 0},
+    {"MotKff",&speed_kff, 0.5f, 0} 
+};
+
+static Param_Item_t img_params[] = {
+    {"ClsTh", &close_Threshold, 1.0f, 2},
+    {"MidTh", &mid_Threshold,   1.0f, 2},
+    {"FarTh", &far_Threshold,   1.0f, 2}
 };
 
 static Param_Item_t *curr_params = NULL;
@@ -65,14 +76,13 @@ void Draw_Bottom_Dashboard(void) {
     char buf[32];
     int16_t y_start = 96;
 
-    // B: 基础速度 (Base)  D: 转向差速 (Diff)
-    // 采用更紧凑的格式，保证长度 <= 20
-    sprintf(buf, "Y:%.1f D:%-4.0f     ", yaw_plus, ctrl_state.speed_diff);
+    sprintf(buf, "ST:%d ND:%d       ", cur_state, node_index);
+    buf[19] = '\0';
     tft180_show_string(0, y_start, buf);
 
     y_start += 16;
-    // TY: 目标偏航 (Target Yaw) RY: 实际偏航 (Real Yaw)
-    sprintf(buf, "TY:%-4.0f RY:%-4.0f   ", ctrl_state.angular_rate_target, ctrl_state.angular_rate_current);
+    sprintf(buf, "T:%.0f R:%.0f       ", ctrl_state.angular_rate_target, ctrl_state.angular_rate_current);
+    buf[19] = '\0';
     tft180_show_string(0, y_start, buf);
 }
 
@@ -86,7 +96,7 @@ static void UI_Draw_Page_Image(void) {
     int16_t offset_x = (SCR_W - XM) / 2;
     int16_t offset_y = 0;
 
-    tft180_show_gray_image(offset_x, offset_y, (const uint8_t *)imgOSTU, XM, YM, XM, YM, 128);
+    tft180_show_gray_image(offset_x, offset_y, (const uint8_t *)imgGray[0], IMG_W, IMG_H, XM, YM, nowThreshold);
 
     for (int i = 0; i < YM; i++) {
         if (mid_line[i] < XM) Safe_Draw_Point(offset_x + mid_line[i], offset_y + i, RGB565_RED);
@@ -113,16 +123,18 @@ static void UI_Draw_Page_Param(char *page_title) {
         int16_t y_pos = 16 + i * 16;
 
         char val_str[16];
-        if (p->is_int) sprintf(val_str, "%d", *(int16_t*)p->ptr_val);
+        if (p->is_int == 2) sprintf(val_str, "%d", *(uint8*)p->ptr_val);
+        else if (p->is_int == 1) sprintf(val_str, "%d", *(int16_t*)p->ptr_val);
         else           sprintf(val_str, "%.2f", *(float*)p->ptr_val);
 
         // 缩短光标前后填充，严防超长
         if (p_idx == cursor) {
-            if (is_editing) sprintf(buf, ">[%s:%s]<   ", p->name, val_str);
-            else            sprintf(buf, "->%s:%s     ", p->name, val_str);
+            if (is_editing) sprintf(buf, ">[%s:%s]<       ", p->name, val_str);
+            else            sprintf(buf, "->%s:%s       ", p->name, val_str);
         } else {
             sprintf(buf, "  %s:%s       ", p->name, val_str);
         }
+        buf[19] = '\0';
         tft180_show_string(0, y_pos, buf);
     }
     Draw_Bottom_Dashboard();
@@ -132,13 +144,17 @@ static void UI_Draw_Page_Param(char *page_title) {
 static void UI_Draw_Page_My_A(void) {
     char buf[32];
     tft180_show_string(0, 0, "=== SENSOR DEBUG ===");
-    sprintf(buf, "SpdL:%-4d R:%-4d  ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
+    sprintf(buf, "SpdL:%d R:%d       ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
+    buf[19] = '\0';
     tft180_show_string(0, 20, buf);
-    sprintf(buf, "PwmL:%-4d R:%-4d  ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    sprintf(buf, "PwmL:%d R:%d       ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    buf[19] = '\0';
     tft180_show_string(0, 40, buf);
-    sprintf(buf, "GyroZ: %-4.0f     ", gyro_param.gyro_z);
+    sprintf(buf, "GyoZ:%.0f        ", gyro_param.gyro_z);
+    buf[19] = '\0';
     tft180_show_string(0, 60, buf);
-    sprintf(buf, "Yaw:   %-4.2f     ", yaw_plus);
+    sprintf(buf, "Yaw:%.1f          ", yaw_plus);
+    buf[19] = '\0';
     tft180_show_string(0, 80, buf);
     Draw_Bottom_Dashboard();
 }
@@ -164,6 +180,10 @@ static void UI_Switch_Page(Page_Enum new_page) {
                 curr_params = motor_params;
                 curr_param_cnt = sizeof(motor_params)/sizeof(motor_params[0]);
                 break;
+            case PAGE_IMG_THRES:
+                curr_params = img_params;
+                curr_param_cnt = sizeof(img_params)/sizeof(img_params[0]);
+                break;
             default:
                 curr_params = NULL;
                 curr_param_cnt = 0;
@@ -175,7 +195,13 @@ static void UI_Switch_Page(Page_Enum new_page) {
 static void UI_Adjust_Param(int8_t direction) {
     if(curr_params == NULL) return;
     Param_Item_t *p = &curr_params[cursor];
-    if(p->is_int) {
+    if(p->is_int == 2) {
+        uint8 *val = (uint8*)p->ptr_val;
+        int16_t tmp = *val + (int16_t)(direction * p->step);
+        if (tmp < 0) tmp = 0;
+        if (tmp > 255) tmp = 255;
+        *val = (uint8)tmp;
+    } else if(p->is_int == 1) {
         int16_t *val = (int16_t*)p->ptr_val;
         *val += (int16_t)(direction * p->step);
     } else {
@@ -249,6 +275,7 @@ void UI_Menu_Task(void) {
         case PAGE_SPEED:     UI_Draw_Page_Param("=== SPEED CFG ==="); break;
         case PAGE_TURN_PID:  UI_Draw_Page_Param("=== TURN PID ==="); break;
         case PAGE_MOTOR_PID: UI_Draw_Page_Param("=== MOTOR PID ==="); break;
+        case PAGE_IMG_THRES: UI_Draw_Page_Param("=== IMG THRESH ==="); break;
         case PAGE_MY_A:      UI_Draw_Page_My_A(); break; // <--- 渲染新增的 MY_A
         default: break;
     }

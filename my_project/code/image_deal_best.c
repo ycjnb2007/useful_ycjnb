@@ -229,15 +229,16 @@ uint8 getOSTUThreshold(void) {
   uint64_t sigma = 0, maxSigma = 0;
   float w1 = 0, w2 = 0;
   int32_t u1 = 0, u2 = 0;
-  uint8 min = 0, max = 255;
-  min = minGray;
-  max = maxGray;
-  if (max < minThreshold)
-    return minThreshold;
-  if (min > maxThreshold)
-    return maxThreshold;
+  uint8 min = minGray;
+  uint8 max = maxGray;
+  
+  if (max < minThreshold) return minThreshold;
+  if (min > maxThreshold) return maxThreshold;
+  if (max - min <= 5) return (max + min) / 2;
+
   min = min < minGrayscale ? minGrayscale : min;
   max = max > maxGrayscale ? maxGrayscale : max;
+  
   uint32_t lowSum[256] = {0};
   uint32_t lowValueSum[256] = {0};
   for (uint16_t i = min; i <= max; ++i) {
@@ -246,23 +247,30 @@ uint8 getOSTUThreshold(void) {
     lowSum[i] = sum;
     lowValueSum[i] = valueSum;
   }
+  
+  if (sum == 0) return 128; 
+
   for (uint16_t i = min; i < max + 1; ++i) {
     w1 = (float)lowSum[i] / sum;
-    w2 = 1 - w1;
+    w2 = 1.0f - w1;
+    
+    if (w1 < 0.0001f || w2 < 0.0001f) continue;
+
     u1 = (int32_t)(lowValueSum[i] / w1);
     u2 = (int32_t)((valueSum - lowValueSum[i]) / w2);
     sigma = (uint64_t)(w1 * w2 * (u1 - u2) * (u1 - u2));
+    
     if (sigma >= maxSigma) {
       maxSigma = sigma;
       nowThreshold = i;
-    } else {
-      break;
-    }
+    } 
   }
+  
   nowThreshold = nowThreshold < minThreshold ? minThreshold : nowThreshold;
   nowThreshold = nowThreshold > maxThreshold ? maxThreshold : nowThreshold;
   return nowThreshold;
 }
+
 /******************************************************************************
  * 函数名称     : Get_imgOSTU
  * 描述         : 大津法二值化处理图像

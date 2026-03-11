@@ -43,11 +43,14 @@ volatile acc_paramTypedef acc_param = {
 // 零飘标定
 void gyro_zero_param_init(void)
 {
-
     gyro_zero_param.Xdata = 0;
-    gyro_zero_param.Ydata = 0; // 零飘参数
+    gyro_zero_param.Ydata = 0;
     gyro_zero_param.Zdata = 0;
-    for (uint16_t i = 0; i < 100; i++)
+    for (uint16_t i = 0; i < 50; i++) {
+        imu660rb_get_gyro();
+        system_delay_ms(5);
+    }
+    for (uint16_t i = 0; i < 200; i++)
     {
         imu660rb_get_gyro();
         gyro_zero_param.Xdata += imu660rb_gyro_x;
@@ -55,10 +58,10 @@ void gyro_zero_param_init(void)
         gyro_zero_param.Zdata += imu660rb_gyro_z;
         system_delay_ms(5);
     }
-    gyro_zero_param.Xdata /= 100;
-    gyro_zero_param.Ydata /= 100;
-    gyro_zero_param.Zdata /= 100;
-    gyro_zero_flag = 1; // 零飘标定完成,大概需要1s左右
+    gyro_zero_param.Xdata /= 200;
+    gyro_zero_param.Ydata /= 200;
+    gyro_zero_param.Zdata /= 200;
+    gyro_zero_flag = 1;
 }
 
 void acc_zero_param_init(void)
@@ -88,7 +91,8 @@ void gyro_transform_value(void)
     // 【强制加括号】防止宏定义展开时运算优先级出错
     gyro_param.gyro_x = imu660rb_gyro_transition( ((float)imu660rb_gyro_x - gyro_zero_param.Xdata) );
     gyro_param.gyro_y = imu660rb_gyro_transition( ((float)imu660rb_gyro_y - gyro_zero_param.Ydata) );
-    gyro_param.gyro_z = -imu660rb_gyro_transition( ((float)imu660rb_gyro_z - gyro_zero_param.Zdata) );//板子上z轴是反的，加了个负号
+    gyro_param.gyro_z = -imu660rb_gyro_transition( ((float)imu660rb_gyro_z - gyro_zero_param.Zdata) );
+//板子上z轴是反的，加了个负号
 }
 // 单位转化为度数
 void acc_transform_value(void)
@@ -105,9 +109,9 @@ void acc_transform_value(void)
 void gyro_yaw_integral(void)
 {
     // 【直接注释掉死区】相信我们前面正确的零偏标定
-        // if (fabsf(gyro_param.gyro_z) < 1.0f) {
-        //     gyro_param.gyro_z = 0;
-        // }
+        
+        
+        
 
     yaw_now = gyro_param.gyro_z;
 
