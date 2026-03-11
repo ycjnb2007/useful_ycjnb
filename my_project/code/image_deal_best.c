@@ -259,8 +259,11 @@ uint8 getOSTUThreshold(void) {
       break;
     }
   }
+  static uint8_t last_Threshold = 120; // 记录上一帧阈值
   nowThreshold = nowThreshold < minThreshold ? minThreshold : nowThreshold;
   nowThreshold = nowThreshold > maxThreshold ? maxThreshold : nowThreshold;
+  nowThreshold = (uint8_t)(0.7f * nowThreshold + 0.3f * last_Threshold);
+  last_Threshold = nowThreshold;
   return nowThreshold;
 }
 /******************************************************************************
