@@ -11,8 +11,8 @@ void init(void) {
   mt9v03x_init();
 
   /* 2. TFT 屏幕初始化（横屏） */
-  tft180_set_dir(TFT180_CROSSWISE);
-  tft180_init();
+  ips200_set_dir(IPS200_CROSSWISE);
+  ips200_init(IPS200_TYPE_SPI);
 
   /* 3. 电机与编码器初始化 */
   Motor_Init();

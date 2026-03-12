@@ -54,7 +54,7 @@ int core0_main(void) {
 
   while (TRUE) {
     // === 5. 菜单调度任务 (发车前有效，发车后内部会自动直接退出) ===
-    
+    UI_Menu_Task();
 
     // === 6. 图像处理与寻线逻辑 ===
     // 这里假设你在其他地方或者用 mt9v03x_finish_flag 标志位判断图像是否采集完
@@ -62,7 +62,7 @@ int core0_main(void) {
       // 在这里放你的图像处理代码
   
       go();
-      UI_Menu_Task();
+      
 
       mt9v03x_finish_flag = 0; // 清空标志位
     }

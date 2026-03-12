@@ -8,8 +8,8 @@
 #include "zf_common_headfile.h"
 
 // 屏幕尺寸约束 (强行设为横屏模式)
-#define SCR_W 160
-#define SCR_H 128
+#define SCR_W 320
+#define SCR_H 240
 
 // --- 全局核心状态标志 ---
 // 最重要的标志位。置 1 后，将关闭一切屏幕刷新操作，释放所有算力给控制。
