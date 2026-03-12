@@ -96,17 +96,36 @@ static void UI_Draw_Page_Image(void) {
     int16_t offset_x = (SCR_W - XM) / 2;
     int16_t offset_y = 0;
 
-    tft180_show_gray_image(offset_x, offset_y, (const uint8_t *)imgGray[0], IMG_W, IMG_H, XM, YM, nowThreshold);
+    // 既然主人反馈屏幕上看到的实际上就是被裁剪后的局部 140x70 区域，
+    // 我们必须老老实实地把原图中对应的那一块 140x70 抠下来铺在屏幕上。
+    // 这也是底层 Get_imgOSTU 在真实遍历搜索的区域。
+    // 采用底层直接打点绘制原始灰白图（跳过底层库错误的缩放映射）：
+    for (int y = 0; y < YM; y++) {
+        for (int x = 0; x < XM; x++) {
+            // 这就是底层 Get_imgOSTU 中提取像素对应的原图绝对坐标
+            uint8 pixel = imgGray[IMG_H - 1 - y][(IMG_W - XM) / 2 + x];
+            // 实时二值化，主人就能在屏幕上直观看到大津法切割出的赛道黑白纯净边界
+            uint16 color = (pixel > nowThreshold) ? RGB565_WHITE : RGB565_BLACK;     
+            // 底层的 y=0 是图像最靠近车头的地方，所以要在 TFT 最下端画
+            Safe_Draw_Point(offset_x + x, offset_y + YM - 1 - y, color);
+        }
+    }
 
+    // 画线：此时背景的尺度和底层的尺度实现了绝对的 1:1 统一！不需要任何缩放！
+    // 仅仅需要把 Y 轴做一次上下翻转（因为底层的 y=0 在近处，屏幕的 y=0 在最上方）
     for (int i = 0; i < YM; i++) {
-        if (mid_line[i] < XM) Safe_Draw_Point(offset_x + mid_line[i], offset_y + i, RGB565_RED);
+        if (mid_line[i] < XM) 
+            Safe_Draw_Point(offset_x + (int16_t)mid_line[i], offset_y + YM - 1 - i, RGB565_RED);
     }
     for (int i = 0; i < l_data_statics; i++) {
-        if (points_l[i][0] < XM && points_l[i][1] < YM) Safe_Draw_Point(offset_x + points_l[i][0], offset_y + points_l[i][1], RGB565_GREEN);
+        if (points_l[i][0] < XM && points_l[i][1] < YM) 
+            Safe_Draw_Point(offset_x + points_l[i][0], offset_y + YM - 1 - points_l[i][1], RGB565_GREEN);
     }
     for (int i = 0; i < r_data_statics; i++) {
-        if (points_r[i][0] < XM && points_r[i][1] < YM) Safe_Draw_Point(offset_x + points_r[i][0], offset_y + points_r[i][1], RGB565_BLUE);
+        if (points_r[i][0] < XM && points_r[i][1] < YM) 
+            Safe_Draw_Point(offset_x + points_r[i][0], offset_y + YM - 1 - points_r[i][1], RGB565_BLUE);
     }
+
     Draw_Bottom_Dashboard();
 }
 
