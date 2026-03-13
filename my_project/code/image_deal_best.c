@@ -227,8 +227,7 @@ uint8 getOSTUThreshold(void) {
   getGrayscaleHistogram();
   uint32_t sum = 0, valueSum = 0;
   uint64_t sigma = 0, maxSigma = 0;
-  float w1 = 0, w2 = 0;
-  int32_t u1 = 0, u2 = 0;
+
   uint8 min = 0, max = 255;
   min = minGray;
   max = maxGray;
@@ -246,12 +245,19 @@ uint8 getOSTUThreshold(void) {
     lowSum[i] = sum;
     lowValueSum[i] = valueSum;
   }
-  for (uint16_t i = min; i < max + 1; ++i) {
-    w1 = (float)lowSum[i] / sum;
-    w2 = 1 - w1;
-    u1 = (int32_t)(lowValueSum[i] / w1);
-    u2 = (int32_t)((valueSum - lowValueSum[i]) / w2);
-    sigma = (uint64_t)(w1 * w2 * (u1 - u2) * (u1 - u2));
+  for (uint16_t i = min; i <= max; ++i) {
+    uint32_t w0 = lowSum[i];
+    uint32_t w1 = sum - w0;
+
+    if (w0 == 0 || w1 == 0) continue;
+
+    // 采用定点数思想，通过 << 6 放大 64 倍，提升除法精度并彻底替代浮点数，且无溢出风险
+    uint32_t u0 = (lowValueSum[i] << 6) / w0;
+    uint32_t u1 = ((valueSum - lowValueSum[i]) << 6) / w1;
+    uint32_t diff = (u0 > u1) ? (u0 - u1) : (u1 - u0);
+    
+    sigma = (uint64_t)w0 * w1 * diff * diff;
+    
     if (sigma >= maxSigma) {
       maxSigma = sigma;
       nowThreshold = i;
@@ -259,10 +265,11 @@ uint8 getOSTUThreshold(void) {
       break;
     }
   }
-  static uint8_t last_Threshold = 120; // 记录上一帧阈值
+  static uint8_t last_Threshold = 120; // 前一帧阈值
   nowThreshold = nowThreshold < minThreshold ? minThreshold : nowThreshold;
   nowThreshold = nowThreshold > maxThreshold ? maxThreshold : nowThreshold;
-  nowThreshold = (uint8_t)(0.7f * nowThreshold + 0.3f * last_Threshold);
+  // 消除小数，同比例整型相乘并整除
+  nowThreshold = (uint8_t)((7 * nowThreshold + 3 * last_Threshold) / 10);
   last_Threshold = nowThreshold;
   return nowThreshold;
 }

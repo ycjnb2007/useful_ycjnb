@@ -73,44 +73,19 @@ static uint8_t curr_param_cnt = 0;
 
 // ==================== 底部仪表盘 (严格限制在 20 字符以内) ====================
 void Draw_Bottom_Dashboard(void) {
-    char buf[32];
-    int16_t y_start = 96;
-
-    sprintf(buf, "ST:%d ND:%d       ", cur_state, node_index);
-    buf[19] = '\0';
-    tft180_show_string(0, y_start, buf);
-
-    y_start += 16;
-    sprintf(buf, "T:%.0f R:%.0f       ", ctrl_state.angular_rate_target, ctrl_state.angular_rate_current);
-    buf[19] = '\0';
-    tft180_show_string(0, y_start, buf);
 }
-
-static inline void Safe_Draw_Point(int16_t x, int16_t y, uint16_t color) {
-    if (x >= 0 && x < SCR_W && y >= 0 && y < SCR_H) {
-        tft180_draw_point(x, y, color);
-    }
-}
-
-// 只要 XM 和 YM 是宏定义，这种写法就是最完美、最优雅的
-
-
-// 只要 XM 和 YM 是宏定义，这种写法就是最完美、最优雅的
-//static uint16_t local_frame_buffer[YM][XM];
 
 static void UI_Draw_Page_Image(void) {
-    int16_t offset_x = (SCR_W - XM) / 2;
+    char buf[32];
+    int16_t offset_x = 0;
     int16_t offset_y = 0;
 
-    // 1. 极速二值化渲染写入显存（纯 CPU 运算，0 SPI 通信延时）
     for (int y = 0; y < YM; y++) {
         for (int x = 0; x < XM; x++) {
             uint8 pixel = imgGray[IMG_H - 1 - y][(IMG_W - XM) / 2 + x];
             local_frame_buffer[YM - 1 - y][x] = (pixel > nowThreshold) ? RGB565_WHITE : RGB565_BLACK;
         }
     }
-
-    // 2. 覆盖绘制赛道边线和中线
     for (int i = 0; i < YM; i++) {
         if (mid_line[i] < XM) 
             local_frame_buffer[YM - 1 - i][(int16_t)mid_line[i]] = RGB565_RED;
@@ -123,63 +98,99 @@ static void UI_Draw_Page_Image(void) {
         if (points_r[i][0] < XM && points_r[i][1] < YM) 
             local_frame_buffer[YM - 1 - points_r[i][1]][points_r[i][0]] = RGB565_BLUE;
     }
+    ips200_show_rgb565_image(offset_x, offset_y, (const uint16 *)local_frame_buffer, XM, YM, XM, YM, 0);
 
-    // 3. 正确调用你的底层库 API
-    // 参数释义: (X坐标, Y坐标, 数组指针, 原图宽, 原图高, 显示宽, 显示高, 字节序模式)
-    // 这里的 color_mode 必须填 0，因为在 TC264 中我们在内存构建的 RGB565_RED 等宏属于低位在前，
-    // 底层源码为：tft180_write_16bit_data_array(data_buffer, dis_width);
-    tft180_show_rgb565_image(offset_x, offset_y, (const uint16 *)local_frame_buffer, XM, YM, XM, YM, 0);
+    int16_t b_y = YM + 8;
+    sprintf(buf, "L_Pts:%-3d R_Pts:%-3d ", l_data_statics, r_data_statics);
+    buf[22] = 0;
+    ips200_show_string(0, b_y, buf);
+    
+    b_y += 16;
+    char* state_str = "Normal";
+    if(cur_state == 5) state_str = "Cross";
+    else if(cur_state == 6) state_str = "Stop";
+    sprintf(buf, "Ele: %-15s ", state_str);
+    buf[22] = 0;
+    ips200_show_string(0, b_y, buf);
 
-    // 4. 仪表盘
-    Draw_Bottom_Dashboard();
+    int16_t c_x = XM + 16;
+    int16_t c_y = 0;
+    
+    sprintf(buf, "Yaw:  %-6.1f  ", yaw_plus);
+    buf[16] = 0;
+    ips200_show_string(c_x, c_y, buf);
+    c_y += 20;
+    
+    sprintf(buf, "Pit:  %-6.1f  ", gyro_param.pitch);
+    buf[16] = 0;
+    ips200_show_string(c_x, c_y, buf);
+    c_y += 20;
+    
+    sprintf(buf, "GZ:   %-5.0f   ", gyro_param.gyro_z);
+    buf[16] = 0;
+    ips200_show_string(c_x, c_y, buf);
+    c_y += 30;
+    
+    sprintf(buf, "SpdL:%-4d R:%-4d  ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
+    buf[20] = 0;
+    ips200_show_string(c_x, c_y, buf);
+    c_y += 20;
+    
+    sprintf(buf, "PwmL:%-4d R:%-4d  ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    buf[20] = 0;
+    ips200_show_string(c_x, c_y, buf);
+    c_y += 30;
+    
+    sprintf(buf, "ST:%-2d ND:%-2d      ", cur_state, node_index);
+    buf[20] = 0;
+    ips200_show_string(c_x, c_y, buf);
 }
 
 static void UI_Draw_Page_Param(char *page_title) {
     char buf[32];
-    tft180_show_string(0, 0, page_title);
+    ips200_show_string(0, 0, page_title);
     if(curr_param_cnt == 0 || curr_params == NULL) return;
 
-    for (uint8_t i = 0; i < MAX_SHOW; i++) {
-        uint8_t p_idx = show_start + i;
-        if (p_idx >= curr_param_cnt) break;
+    ips200_show_string(0, 220, "                                        ");
 
+    for (uint8_t i = 0; i < curr_param_cnt; i++) {
+        uint8_t p_idx = i;
         Param_Item_t *p = &curr_params[p_idx];
-        int16_t y_pos = 16 + i * 16;
+        
+        int16_t x_pos = (p_idx % 2 == 0) ? 5 : 160;
+        int16_t y_pos = 30 + (i / 2) * 20;
 
         char val_str[16];
         if (p->is_int == 2) sprintf(val_str, "%d", *(uint8*)p->ptr_val);
         else if (p->is_int == 1) sprintf(val_str, "%d", *(int16_t*)p->ptr_val);
         else           sprintf(val_str, "%.2f", *(float*)p->ptr_val);
 
-        // 缩短光标前后填充，严防超长
         if (p_idx == cursor) {
-            if (is_editing) sprintf(buf, ">[%s:%s]<       ", p->name, val_str);
-            else            sprintf(buf, "->%s:%s       ", p->name, val_str);
+            if (is_editing) sprintf(buf, ">[%-5s:%-6s]<  ", p->name, val_str);
+            else            sprintf(buf, "->%-5s:%-6s   ", p->name, val_str);
         } else {
-            sprintf(buf, "  %s:%s       ", p->name, val_str);
+            sprintf(buf, "  %-5s:%-6s   ", p->name, val_str);
         }
-        buf[19] = '\0';
-        tft180_show_string(0, y_pos, buf);
+        buf[20] = 0;
+        ips200_show_string(x_pos, y_pos, buf);
     }
-    Draw_Bottom_Dashboard();
 }
 
-// ==================== 新增的 MY_A 空白页 ====================
 static void UI_Draw_Page_My_A(void) {
     char buf[32];
-    tft180_show_string(0, 0, "=== SENSOR DEBUG ===");
+    ips200_show_string(0, 0, "=== SENSOR DEBUG ===");
     sprintf(buf, "SpdL:%d R:%d       ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
     buf[19] = '\0';
-    tft180_show_string(0, 20, buf);
+    ips200_show_string(0, 20, buf);
     sprintf(buf, "PwmL:%d R:%d       ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
     buf[19] = '\0';
-    tft180_show_string(0, 40, buf);
+    ips200_show_string(0, 40, buf);
     sprintf(buf, "GyoZ:%.0f        ", gyro_param.gyro_z);
     buf[19] = '\0';
-    tft180_show_string(0, 60, buf);
+    ips200_show_string(0, 60, buf);
     sprintf(buf, "Yaw:%.1f          ", yaw_plus);
     buf[19] = '\0';
-    tft180_show_string(0, 80, buf);
+    ips200_show_string(0, 80, buf);
     Draw_Bottom_Dashboard();
 }
 
@@ -189,7 +200,7 @@ static void UI_Switch_Page(Page_Enum new_page) {
         is_editing = 0;
         cursor = 0;
         show_start = 0;
-        tft180_clear();
+        ips200_clear();
 
         switch (curr_page) {
             case PAGE_SPEED:
@@ -236,7 +247,7 @@ static void UI_Adjust_Param(int8_t direction) {
 
 void UI_Menu_Init(void) {
     UI_Key_Init();
-    tft180_clear();
+    ips200_clear();
     curr_page = PAGE_MAX;
     UI_Switch_Page(PAGE_IMAGE);
 }
@@ -246,8 +257,8 @@ void UI_Menu_Task(void) {
 
     if (key == KEY_CAR_LONG) {
         system_running = 1;
-        tft180_clear();
-        tft180_show_string(30, 60, "CAR RUNNING!");
+        ips200_clear();
+        ips200_show_string(30, 60, "CAR RUNNING!");
         return;
     }
     if (system_running) return;
