@@ -62,7 +62,8 @@ typedef enum {
   STATE_WAIT_NODE,      // 盲开一小段等待路口沉下
   STATE_L_CORNER,       // 纯左直角弯
   STATE_R_CORNER,       // 纯右直角弯
-  STATE_BLEND           // 盲转过渡态
+  STATE_BLEND,          // 盲转过渡态
+    STATE_ELEMENT_COMPLEX, // 15cm以上引线元件处理 (EC)          // 盲转过渡态
 } RunState;
 
 // ==================== 运行方向枚举 ====================

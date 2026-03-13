@@ -20,7 +20,6 @@ typedef enum {
     PAGE_SPEED,
     PAGE_TURN_PID,
     PAGE_MOTOR_PID,
-    PAGE_IMG_THRES,    // <--- 新增阈值页面
     PAGE_MY_A,         // <--- 新增的备用页 A
     PAGE_MAX
 } Page_Enum;
@@ -62,14 +61,14 @@ static Param_Item_t motor_params[] = {
     {"MotKff",&speed_kff, 0.5f, 0} 
 };
 
-static Param_Item_t img_params[] = {
-    {"ClsTh", &close_Threshold, 1.0f, 2},
-    {"MidTh", &mid_Threshold,   1.0f, 2},
-    {"FarTh", &far_Threshold,   1.0f, 2}
-};
-
 static Param_Item_t *curr_params = NULL;
 static uint8_t curr_param_cnt = 0;
+
+// 状态机字符串映射表 (2字符对齐，与 RunState 枚举一一对应)
+static const char *State_Str[] = {
+    "NM", "CN", "FI", "SO", "BT",
+    "CC", "WN", "LC", "RC", "BL", "EC"
+};
 
 // ==================== 底部仪表盘 (严格限制在 20 字符以内) ====================
 void Draw_Bottom_Dashboard(void) {
@@ -116,34 +115,60 @@ static void UI_Draw_Page_Image(void) {
     int16_t c_x = XM + 16;
     int16_t c_y = 0;
     
+    static char cache_yaw[32] = {0};
+    static char cache_th[32]  = {0};
+    static char cache_gz[32]  = {0};
+    static char cache_spd[32] = {0};
+    static char cache_pwm[32] = {0};
+    static char cache_st[32]  = {0};
+
+    // 1. 刷新 Yaw 航向角
     sprintf(buf, "Yaw:  %-6.1f  ", yaw_plus);
-    buf[16] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    if(strcmp(buf, cache_yaw) != 0) {
+        strcpy(cache_yaw, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
     c_y += 20;
     
-    sprintf(buf, "Pit:  %-6.1f  ", gyro_param.pitch);
-    buf[16] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    // 2. 刷新大津法二值化阈值 (原本是 Pitch)
+    sprintf(buf, "Th:   %-3d     ", nowThreshold);
+    if(strcmp(buf, cache_th) != 0) {
+        strcpy(cache_th, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
     c_y += 20;
     
+    // 3. 刷新 Z 轴角速度 (GZ)
     sprintf(buf, "GZ:   %-5.0f   ", gyro_param.gyro_z);
-    buf[16] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    if(strcmp(buf, cache_gz) != 0) {
+        strcpy(cache_gz, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
     c_y += 30;
     
-    sprintf(buf, "SpdL:%-4d R:%-4d  ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
-    buf[20] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    // 4. 刷新左右轮真实速度
+    sprintf(buf, "SpdL:%-4d R:%-4d", (int)Actual_Speed[0], (int)Actual_Speed[1]);
+    if(strcmp(buf, cache_spd) != 0) {
+        strcpy(cache_spd, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
     c_y += 20;
     
-    sprintf(buf, "PwmL:%-4d R:%-4d  ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
-    buf[20] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    // 5. 刷新左右轮输出 PWM
+    sprintf(buf, "PwmL:%-4d R:%-4d", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
+    if(strcmp(buf, cache_pwm) != 0) {
+        strcpy(cache_pwm, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
     c_y += 30;
     
-    sprintf(buf, "ST:%-2d ND:%-2d      ", cur_state, node_index);
-    buf[20] = 0;
-    ips200_show_string(c_x, c_y, buf);
+    // 6. 刷新状态机缩写与节点编号 (带越界强力防崩保护)
+    uint8_t safe_st = (cur_state <= 10) ? cur_state : 0; 
+    sprintf(buf, "ST:%s ND:%-2d      ", State_Str[safe_st], node_index);
+    if(strcmp(buf, cache_st) != 0) {
+        strcpy(cache_st, buf);
+        ips200_show_string(c_x, c_y, buf);
+    }
 }
 
 static void UI_Draw_Page_Param(char *page_title) {
@@ -214,12 +239,7 @@ static void UI_Switch_Page(Page_Enum new_page) {
             case PAGE_MOTOR_PID:
                 curr_params = motor_params;
                 curr_param_cnt = sizeof(motor_params)/sizeof(motor_params[0]);
-                break;
-            case PAGE_IMG_THRES:
-                curr_params = img_params;
-                curr_param_cnt = sizeof(img_params)/sizeof(img_params[0]);
-                break;
-            default:
+                break;            default:
                 curr_params = NULL;
                 curr_param_cnt = 0;
                 break;
@@ -309,9 +329,7 @@ void UI_Menu_Task(void) {
         case PAGE_IMAGE:     UI_Draw_Page_Image(); break;
         case PAGE_SPEED:     UI_Draw_Page_Param("=== SPEED CFG ==="); break;
         case PAGE_TURN_PID:  UI_Draw_Page_Param("=== TURN PID ==="); break;
-        case PAGE_MOTOR_PID: UI_Draw_Page_Param("=== MOTOR PID ==="); break;
-        case PAGE_IMG_THRES: UI_Draw_Page_Param("=== IMG THRESH ==="); break;
-        case PAGE_MY_A:      UI_Draw_Page_My_A(); break; // <--- 渲染新增的 MY_A
+        case PAGE_MOTOR_PID: UI_Draw_Page_Param("=== MOTOR PID ==="); break;        case PAGE_MY_A:      UI_Draw_Page_My_A(); break; // <--- 渲染新增的 MY_A
         default: break;
     }
 }
