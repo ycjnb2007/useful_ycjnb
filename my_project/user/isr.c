@@ -34,11 +34,10 @@
  * 2022-09-15       pudding            first version
  ********************************************************************************************************************/
 
-#include "image_deal_best.h"
-#include "isr_config.h"
-#include "motor.h"
-#include "pid.h"
 
+#include "isr_config.h"
+
+#include "isr.h"
 
 // 对于TC系列默认是不支持中断嵌套的，希望支持中断嵌套需要在中断内使用
 // interrupt_global_enable(0); 来开启中断嵌套
@@ -58,10 +57,10 @@ IFX_INTERRUPT(cc60_pit_ch0_isr, 0, CCU6_0_CH0_ISR_PRIORITY) {
   gyro_yaw_integral(); //  积分计算绝对角度 (yaw_plus)
 
   // 2. 采集并更新编码器数据
-  Encoder_Update_Speed();
+  //Encoder_Update_Speed();
 
   // 3. 算 PID 和输出电机 PWM (放在最后！)
-  Control_Loop(); // 此时它内部拿到的 gyro_param.gyro_z 和 Actual_Speed
+  //Control_Loop(); // 此时它内部拿到的 gyro_param.gyro_z 和 Actual_Speed
                   // 都是最新鲜的热乎数据
 }
 

@@ -47,6 +47,16 @@ int core0_main(void) {
   clock_init(); // 获取时钟频率<务必保留>
   debug_init(); // 初始化默认调试串口
   // 此处编写用户代码 例如外设初始化代码等
+  //Motor_Init();
+  //tft180_set_dir(TFT180_CROSSWISE);
+ // tft180_init();
+  /*UI_Menu_Init();
+  imu660rb_init();
+    system_delay_ms(500);
+    gyro_zero_param_init();
+    acc_zero_param_init();
+    UI_Menu_Init();
+    pit_ms_init(CCU60_CH0, 5);*/
 
   init();
 
@@ -54,25 +64,34 @@ int core0_main(void) {
 
   while (TRUE) {
     // === 5. 菜单调度任务 (发车前有效，发车后内部会自动直接退出) ===
-    UI_Menu_Task();
+
+   //tft180_show_int(0, 0, 567, 3);
+
+   // Motor_Control(4000,4000);
+
+
+
+
 
     // === 6. 图像处理与寻线逻辑 ===
     // 这里假设你在其他地方或者用 mt9v03x_finish_flag 标志位判断图像是否采集完
     if (mt9v03x_finish_flag) {
-      // 在这里放你的图像处理代码
-  
-      go();
-      
+
+        go();
+        UI_Menu_Task();
+
+
 
       mt9v03x_finish_flag = 0; // 清空标志位
     }
+
 
     // === 7. 发车状态检测与安全锁 ===
     if (system_running == 1) {
       // 发车后主循环只全力算图像，绝对不管屏幕了！
       // 底层电机控制权完全交给 isr.c 里的 5ms 定时器中断
     } else {
-      // 停车模式下：强制输出电机为 0，防止把车放在地上调参时车跑了伤人
+      // 停车模式下：强制输出电机为 0，
       Motor_Control(0, 0);
     }
   }

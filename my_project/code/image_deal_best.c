@@ -1031,124 +1031,109 @@ uint8 Check_Node_Box(uint8 trigger_y) {
  * 架构师备注   : 绝对禁止在此处写任何十字/拐角等具体路况的判断逻辑
  ******************************************************************************/
 void Get_lost_tip(uint8 length) {
-  // 1. 全局状态初始化 (每帧都需要重置)
-  dis_Solidline = 0;
-  b_lost_num = 0;
-  t_lost_num = 0;
-  l_lost_num = 0;
-  r_lost_num = 0;
-  memset(b_center, 0, sizeof(b_center));
-  memset(l_center, 0, sizeof(l_center));
-  memset(r_center, 0, sizeof(r_center));
-  memset(t_center, 0, sizeof(t_center));
+    // 1. 全局状态初始化 (每帧都需要重置)
+    dis_Solidline = 0;
+    b_lost_num = 0; t_lost_num = 0; l_lost_num = 0; r_lost_num = 0;
+    memset(b_center, 0, sizeof(b_center));
+    memset(l_center, 0, sizeof(l_center));
+    memset(r_center, 0, sizeof(r_center));
+    memset(t_center, 0, sizeof(t_center));
 
-  uint8 in_segment = 0; // 缺口状态标志
-  uint8 seg_start = 0;  // 缺口起始坐标
+    uint8 in_segment = 0; // 缺口状态标志
+    uint8 seg_start = 0;  // 缺口起始坐标
 
-  // ==========================================================
-  // 2. 扫描顶部 (Lost_Top) - 沿X轴扫描
-  // ==========================================================
-  if (t_lost_tip > 0) { // 如果检测到顶部有丢失
-    in_segment = 0;
-    for (int x = Deal_Left; x <= Deal_Right; x++) {
-      // 判断是否为有效丢失边线或超白区
-      if (imgOSTU[Lost_Top][x] == Lost_line || imgOSTU[Deal_Top][x] == White) {
-        if (!in_segment) {
-          in_segment = 1;
-          seg_start = x; // 捕捉到缺口起始
+    // ==========================================================
+    // 2. 扫描顶部 (Lost_Top) - 沿X轴扫描
+    // ==========================================================
+    if (t_lost_tip > 0) { // 如果检测到顶部有丢失
+        in_segment = 0;
+        for (int x = Deal_Left; x <= Deal_Right; x++) {
+            // 判断是否为有效丢失边线或超白区
+            if (imgOSTU[Lost_Top][x] == Lost_line || imgOSTU[Deal_Top][x] == White) {
+                if (!in_segment) {
+                    in_segment = 1;
+                    seg_start = x; // 捕捉到缺口起始
+                }
+            } else {
+                if (in_segment) {
+                    in_segment = 0; // 捕捉到缺口结束
+                    // 过滤小于 length 的噪点
+                    if (x - seg_start >= length && t_lost_num < 2) {
+                        t_center[t_lost_num++] = (seg_start + x - 1) / 2; // 求中点
+                    }
+                }
+            }
         }
-      } else {
-        if (in_segment) {
-          in_segment = 0; // 捕捉到缺口结束
-          // 过滤小于 length 的噪点
-          if (x - seg_start >= length && t_lost_num < 2) {
-            t_center[t_lost_num++] = (seg_start + x - 1) / 2; // 求中点
-          }
+        // 扫尾边界处未闭合的缺口
+        if (in_segment && (Deal_Right - seg_start + 1 >= length) && t_lost_num < 2) {
+            t_center[t_lost_num++] = (seg_start + Deal_Right) / 2;
         }
-      }
     }
-    // 扫尾边界处未闭合的缺口
-    if (in_segment && (Deal_Right - seg_start + 1 >= length) &&
-        t_lost_num < 2) {
-      t_center[t_lost_num++] = (seg_start + Deal_Right) / 2;
-    }
-  }
 
-  // ==========================================================
-  // 3. 扫描底部 (Lost_Bottom) - 沿X轴扫描
-  // ==========================================================
-  if (b_lost_tip > 0) {
-    in_segment = 0;
-    for (int x = Deal_Left; x <= Deal_Right; x++) {
-      if (imgOSTU[Lost_Bottom][x] == Lost_line) {
-        if (!in_segment) {
-          in_segment = 1;
-          seg_start = x;
+    // ==========================================================
+    // 3. 扫描底部 (Lost_Bottom) - 沿X轴扫描
+    // ==========================================================
+    if (b_lost_tip > 0) {
+        in_segment = 0;
+        for (int x = Deal_Left; x <= Deal_Right; x++) {
+            if (imgOSTU[Lost_Bottom][x] == Lost_line) {
+                if (!in_segment) { in_segment = 1; seg_start = x; }
+            } else {
+                if (in_segment) {
+                    in_segment = 0;
+                    if (x - seg_start >= length && b_lost_num < 2) {
+                        b_center[b_lost_num++] = (seg_start + x - 1) / 2;
+                    }
+                }
+            }
         }
-      } else {
-        if (in_segment) {
-          in_segment = 0;
-          if (x - seg_start >= length && b_lost_num < 2) {
-            b_center[b_lost_num++] = (seg_start + x - 1) / 2;
-          }
+        if (in_segment && (Deal_Right - seg_start + 1 >= length) && b_lost_num < 2) {
+            b_center[b_lost_num++] = (seg_start + Deal_Right) / 2;
         }
-      }
     }
-    if (in_segment && (Deal_Right - seg_start + 1 >= length) &&
-        b_lost_num < 2) {
-      b_center[b_lost_num++] = (seg_start + Deal_Right) / 2;
-    }
-  }
 
-  // ==========================================================
-  // 4. 扫描左部 (Lost_Left) - 沿Y轴扫描
-  // ==========================================================
-  if (l_lost_tip > 0) {
-    in_segment = 0;
-    for (int y = Deal_Bottom; y <= Deal_Top; y++) {
-      if (imgOSTU[y][Lost_Left] == Lost_line ||
-          imgOSTU[y][Deal_Left] == White) {
-        if (!in_segment) {
-          in_segment = 1;
-          seg_start = y;
+    // ==========================================================
+    // 4. 扫描左部 (Lost_Left) - 沿Y轴扫描
+    // ==========================================================
+    if (l_lost_tip > 0) {
+        in_segment = 0;
+        for (int y = Deal_Bottom; y <= Deal_Top; y++) {
+            if (imgOSTU[y][Lost_Left] == Lost_line || imgOSTU[y][Deal_Left] == White) {
+                if (!in_segment) { in_segment = 1; seg_start = y; }
+            } else {
+                if (in_segment) {
+                    in_segment = 0;
+                    if (y - seg_start >= length && l_lost_num < 5) {
+                        l_center[l_lost_num++] = (seg_start + y - 1) / 2;
+                    }
+                }
+            }
         }
-      } else {
-        if (in_segment) {
-          in_segment = 0;
-          if (y - seg_start >= length && l_lost_num < 5) {
-            l_center[l_lost_num++] = (seg_start + y - 1) / 2;
-          }
+        if (in_segment && (Deal_Top - seg_start + 1 >= length) && l_lost_num < 5) {
+            l_center[l_lost_num++] = (seg_start + Deal_Top) / 2;
         }
-      }
     }
-    if (in_segment && (Deal_Top - seg_start + 1 >= length) && l_lost_num < 5) {
-      l_center[l_lost_num++] = (seg_start + Deal_Top) / 2;
-    }
-  }
 
-  // ==========================================================
-  // 5. 扫描右部 (Lost_Right) - 沿Y轴扫描
-  // ==========================================================
-  if (r_lost_tip > 0) {
-    in_segment = 0;
-    for (int y = Deal_Bottom; y <= Deal_Top; y++) {
-      if (imgOSTU[y][Lost_Right] == Lost_line ||
-          imgOSTU[y][Deal_Right] == White) {
-        if (!in_segment) {
-          in_segment = 1;
-          seg_start = y;
+    // ==========================================================
+    // 5. 扫描右部 (Lost_Right) - 沿Y轴扫描
+    // ==========================================================
+    if (r_lost_tip > 0) {
+        in_segment = 0;
+        for (int y = Deal_Bottom; y <= Deal_Top; y++) {
+            if (imgOSTU[y][Lost_Right] == Lost_line || imgOSTU[y][Deal_Right] == White) {
+                if (!in_segment) { in_segment = 1; seg_start = y; }
+            } else {
+                if (in_segment) {
+                    in_segment = 0;
+                    if (y - seg_start >= length && r_lost_num < 5) {
+                        r_center[r_lost_num++] = (seg_start + y - 1) / 2;
+                    }
+                }
+            }
         }
-      } else {
-        if (in_segment) {
-          in_segment = 0;
-          if (y - seg_start >= length && r_lost_num < 5) {
-            r_center[r_lost_num++] = (seg_start + y - 1) / 2;
-          }
+        if (in_segment && (Deal_Top - seg_start + 1 >= length) && r_lost_num < 5) {
+            r_center[r_lost_num++] = (seg_start + Deal_Top) / 2;
         }
-      }
     }
-    if (in_segment && (Deal_Top - seg_start + 1 >= length) && r_lost_num < 5) {
-      r_center[r_lost_num++] = (seg_start + Deal_Top) / 2;
-    }
-  }
 }
+

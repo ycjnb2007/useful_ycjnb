@@ -9,21 +9,10 @@
 #include "image_deal_best.h"
 #include "run.h"
 
-uint8_t system_running = 0;
+#define SCR_W 160
+#define SCR_H 128
 
-// 状态机字符串映射表 (最多2个字符，保持对齐)
-static const char *State_Str[] = {
-    "NM", // NORMAL (正常巡线)
-    "CN", // CHECK_NODE (动态查框)
-    "FI", // FALSE_IGNORE (假干扰强拉)
-    "SO", // SMOOTH_OFFSET (平滑偏置)
-    "BT", // BLIND_TURN_YAW (盲转)
-    "CC", // CAPACITY_CHECK (容量检测)
-    "WN", // WAIT_NODE (等节点沉下)
-    "LC", // L_CORNER (左直角)
-    "RC", // R_CORNER (右直角)
-    "BL"  // BLEND (过渡)
-};
+uint8_t system_running = 0;
 
 // --- 页面枚举 ---
 typedef enum {
@@ -31,14 +20,16 @@ typedef enum {
     PAGE_SPEED,
     PAGE_TURN_PID,
     PAGE_MOTOR_PID,
+    PAGE_IMG_THRES,    // <--- 新增阈值页面
     PAGE_MY_A,         // <--- 新增的备用页 A
     PAGE_MAX
 } Page_Enum;
 
 static Page_Enum curr_page = PAGE_IMAGE;
-
+static uint16_t local_frame_buffer[YM][XM];
 static uint8_t cursor = 0;
 static uint8_t show_start = 0;
+#define MAX_SHOW 5
 
 static uint8_t is_editing = 0;
 
@@ -71,141 +62,124 @@ static Param_Item_t motor_params[] = {
     {"MotKff",&speed_kff, 0.5f, 0} 
 };
 
+static Param_Item_t img_params[] = {
+    {"ClsTh", &close_Threshold, 1.0f, 2},
+    {"MidTh", &mid_Threshold,   1.0f, 2},
+    {"FarTh", &far_Threshold,   1.0f, 2}
+};
+
 static Param_Item_t *curr_params = NULL;
 static uint8_t curr_param_cnt = 0;
 
 // ==================== 底部仪表盘 (严格限制在 20 字符以内) ====================
 void Draw_Bottom_Dashboard(void) {
     char buf[32];
-    int16_t y_start = 220;
+    int16_t y_start = 96;
 
     sprintf(buf, "ST:%d ND:%d       ", cur_state, node_index);
     buf[19] = '\0';
-    ips200_show_string(0, y_start, buf);
+    tft180_show_string(0, y_start, buf);
 
     y_start += 16;
     sprintf(buf, "T:%.0f R:%.0f       ", ctrl_state.angular_rate_target, ctrl_state.angular_rate_current);
     buf[19] = '\0';
-    ips200_show_string(0, y_start, buf);
+    tft180_show_string(0, y_start, buf);
 }
 
 static inline void Safe_Draw_Point(int16_t x, int16_t y, uint16_t color) {
     if (x >= 0 && x < SCR_W && y >= 0 && y < SCR_H) {
-        ips200_draw_point(x, y, color);
+        tft180_draw_point(x, y, color);
     }
 }
 
+// 只要 XM 和 YM 是宏定义，这种写法就是最完美、最优雅的
+
+
+// 只要 XM 和 YM 是宏定义，这种写法就是最完美、最优雅的
+//static uint16_t local_frame_buffer[YM][XM];
+
 static void UI_Draw_Page_Image(void) {
-    // 【分区1：左上角 140x90 原始图像块发送 (高性能)】
-    // 为了解决底层 Y=0 在近处(倒置)的问题，我们在内存中快速翻转一次，直接调用块显示
-    static uint8_t disp_buf[90][140]; // 静态申请，防止爆栈
+    int16_t offset_x = (SCR_W - XM) / 2;
+    int16_t offset_y = 0;
+
+    // 1. 极速二值化渲染写入显存（纯 CPU 运算，0 SPI 通信延时）
     for (int y = 0; y < YM; y++) {
         for (int x = 0; x < XM; x++) {
-            disp_buf[y][x] = imgOSTU[YM - 1 - y][x]; // Y轴镜像翻转
+            uint8 pixel = imgGray[IMG_H - 1 - y][(IMG_W - XM) / 2 + x];
+            local_frame_buffer[YM - 1 - y][x] = (pixel > nowThreshold) ? RGB565_WHITE : RGB565_BLACK;
         }
     }
-    // 假设阈值填128，255会显示为白，0显示为黑。利用逐飞库一次性推入显存！
-    ips200_show_gray_image(0, 0, (const uint8_t *)disp_buf, XM, YM, XM, YM, 128);
 
-    // 【分区2：左下角 纯净线特征提取区】
-    // 在 Y=120 开始的下方区域，打点显示提取的寻线数组
-    int16_t y_offset = 120;
-    
+    // 2. 覆盖绘制赛道边线和中线
     for (int i = 0; i < YM; i++) {
         if (mid_line[i] < XM) 
-            Safe_Draw_Point(mid_line[i], y_offset + YM - 1 - i, RGB565_RED);
+            local_frame_buffer[YM - 1 - i][(int16_t)mid_line[i]] = RGB565_RED;
     }
     for (int i = 0; i < l_data_statics; i++) {
         if (points_l[i][0] < XM && points_l[i][1] < YM) 
-            Safe_Draw_Point(points_l[i][0], y_offset + YM - 1 - points_l[i][1], RGB565_GREEN);
+            local_frame_buffer[YM - 1 - points_l[i][1]][points_l[i][0]] = RGB565_GREEN;
     }
     for (int i = 0; i < r_data_statics; i++) {
         if (points_r[i][0] < XM && points_r[i][1] < YM) 
-            Safe_Draw_Point(points_r[i][0], y_offset + YM - 1 - points_r[i][1], RGB565_BLUE);
+            local_frame_buffer[YM - 1 - points_r[i][1]][points_r[i][0]] = RGB565_BLUE;
     }
 
-    // 【分区3：右侧 核心数据看板】
-    char buf[32];
-    int16_t panel_x = 150; // 右侧看板起始X坐标
-    int16_t py = 0;
-    
-    // 行1：大津法阈值 与 偏差 (假设用 start_center_x 算偏差)
-    sprintf(buf, "Thres:%3d Err:%3d ", nowThreshold, (int)(XM/2 - start_center_x));
-    ips200_show_string(panel_x, py, buf);
-    py += 20;
-    
-    // 行2：状态机与节点
-    // 严防 cur_state 越界导致死机
-    uint8_t state_idx = (cur_state <= STATE_BLEND) ? cur_state : 0;
-    sprintf(buf, "St: [%s] Node: %d   ", State_Str[state_idx], node_index);
-    ips200_show_string(panel_x, py, buf);
-    py += 20;
+    // 3. 正确调用你的底层库 API
+    // 参数释义: (X坐标, Y坐标, 数组指针, 原图宽, 原图高, 显示宽, 显示高, 字节序模式)
+    // 这里的 color_mode 必须填 0，因为在 TC264 中我们在内存构建的 RGB565_RED 等宏属于低位在前，
+    // 底层源码为：tft180_write_16bit_data_array(data_buffer, dis_width);
+    tft180_show_rgb565_image(offset_x, offset_y, (const uint16 *)local_frame_buffer, XM, YM, XM, YM, 0);
 
-    // 行3：姿态核心
-    sprintf(buf, "Yaw: %5.1f       ", yaw_plus); // 注意挂载你的 yaw 变量
-    ips200_show_string(panel_x, py, buf);
-    py += 20;
-    
-    sprintf(buf, "GyoZ:%5.0f       ", gyro_param.gyro_z);
-    ips200_show_string(panel_x, py, buf);
-    py += 20;
-
-    // 行4：底层电机动作
-    sprintf(buf, "L:%4d R:%4d    ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
-    ips200_show_string(panel_x, py, buf);
+    // 4. 仪表盘
+    Draw_Bottom_Dashboard();
 }
 
 static void UI_Draw_Page_Param(char *page_title) {
     char buf[32];
-    ips200_show_string(0, 0, page_title);
+    tft180_show_string(0, 0, page_title);
     if(curr_param_cnt == 0 || curr_params == NULL) return;
 
-    // 支持双栏，假设最多显示 12 个参数
-    #define MAX_SHOW_NEW 12 
-    
-    for (uint8_t i = 0; i < MAX_SHOW_NEW; i++) {
+    for (uint8_t i = 0; i < MAX_SHOW; i++) {
         uint8_t p_idx = show_start + i;
         if (p_idx >= curr_param_cnt) break;
 
         Param_Item_t *p = &curr_params[p_idx];
-        
-        // 分栏逻辑：偶数在左，奇数在右
-        int16_t x_pos = (i % 2 == 0) ? 0 : 160; 
-        int16_t y_pos = 20 + (i / 2) * 20;
+        int16_t y_pos = 16 + i * 16;
 
         char val_str[16];
         if (p->is_int == 2) sprintf(val_str, "%d", *(uint8*)p->ptr_val);
         else if (p->is_int == 1) sprintf(val_str, "%d", *(int16_t*)p->ptr_val);
         else           sprintf(val_str, "%.2f", *(float*)p->ptr_val);
 
+        // 缩短光标前后填充，严防超长
         if (p_idx == cursor) {
-            if (is_editing) sprintf(buf, ">[%s:%s]<  ", p->name, val_str);
-            else            sprintf(buf, "->%s:%s    ", p->name, val_str);
+            if (is_editing) sprintf(buf, ">[%s:%s]<       ", p->name, val_str);
+            else            sprintf(buf, "->%s:%s       ", p->name, val_str);
         } else {
-            sprintf(buf, "  %s:%s    ", p->name, val_str);
+            sprintf(buf, "  %s:%s       ", p->name, val_str);
         }
-        // 确保定长擦除
-        buf[15] = '\0'; 
-        ips200_show_string(x_pos, y_pos, buf);
+        buf[19] = '\0';
+        tft180_show_string(0, y_pos, buf);
     }
+    Draw_Bottom_Dashboard();
 }
 
 // ==================== 新增的 MY_A 空白页 ====================
 static void UI_Draw_Page_My_A(void) {
     char buf[32];
-    ips200_show_string(0, 0, "=== SENSOR DEBUG ===");
+    tft180_show_string(0, 0, "=== SENSOR DEBUG ===");
     sprintf(buf, "SpdL:%d R:%d       ", (int)Actual_Speed[0], (int)Actual_Speed[1]);
     buf[19] = '\0';
-    ips200_show_string(0, 20, buf);
+    tft180_show_string(0, 20, buf);
     sprintf(buf, "PwmL:%d R:%d       ", ctrl_state.output_left_pwm, ctrl_state.output_right_pwm);
     buf[19] = '\0';
-    ips200_show_string(0, 40, buf);
+    tft180_show_string(0, 40, buf);
     sprintf(buf, "GyoZ:%.0f        ", gyro_param.gyro_z);
     buf[19] = '\0';
-    ips200_show_string(0, 60, buf);
+    tft180_show_string(0, 60, buf);
     sprintf(buf, "Yaw:%.1f          ", yaw_plus);
     buf[19] = '\0';
-    ips200_show_string(0, 80, buf);
+    tft180_show_string(0, 80, buf);
     Draw_Bottom_Dashboard();
 }
 
@@ -215,7 +189,7 @@ static void UI_Switch_Page(Page_Enum new_page) {
         is_editing = 0;
         cursor = 0;
         show_start = 0;
-        ips200_clear();
+        tft180_clear();
 
         switch (curr_page) {
             case PAGE_SPEED:
@@ -229,6 +203,10 @@ static void UI_Switch_Page(Page_Enum new_page) {
             case PAGE_MOTOR_PID:
                 curr_params = motor_params;
                 curr_param_cnt = sizeof(motor_params)/sizeof(motor_params[0]);
+                break;
+            case PAGE_IMG_THRES:
+                curr_params = img_params;
+                curr_param_cnt = sizeof(img_params)/sizeof(img_params[0]);
                 break;
             default:
                 curr_params = NULL;
@@ -258,7 +236,7 @@ static void UI_Adjust_Param(int8_t direction) {
 
 void UI_Menu_Init(void) {
     UI_Key_Init();
-    ips200_clear();
+    tft180_clear();
     curr_page = PAGE_MAX;
     UI_Switch_Page(PAGE_IMAGE);
 }
@@ -268,8 +246,8 @@ void UI_Menu_Task(void) {
 
     if (key == KEY_CAR_LONG) {
         system_running = 1;
-        ips200_clear();
-        ips200_show_string(30, 60, "CAR RUNNING!");
+        tft180_clear();
+        tft180_show_string(30, 60, "CAR RUNNING!");
         return;
     }
     if (system_running) return;
@@ -296,7 +274,7 @@ void UI_Menu_Task(void) {
                 else cursor = 0;
             }
             if (cursor < show_start) show_start = cursor;
-            if (cursor >= show_start + MAX_SHOW_NEW) show_start = cursor - MAX_SHOW_NEW + 1;
+            if (cursor >= show_start + MAX_SHOW) show_start = cursor - MAX_SHOW + 1;
 
             if (key == KEY_CAR_CLICK) is_editing = 1;
         }
@@ -307,13 +285,13 @@ void UI_Menu_Task(void) {
         }
     }
 
-    // --- 【强制性能锁】 ---
+    // --- 【关键修复：防闪烁渲染器降频】 ---
+    // 假设此函数在主循环或 10ms 的定时器中被极高频调用。
+    // 我们强制只让它每调用 4 次（或更多次）才去刷一次屏幕，保护 SPI 通信带宽。
     static uint8_t render_delay = 0;
     render_delay++;
-    // 如果主循环是 10ms，则 50ms 刷一次屏幕 (5次)
-    // 绝对不能让 UI 刷新抢占电磁识别和 PID 的算力时间片！
-    if (render_delay < 5) return; 
-    render_delay = 0;             
+    if (render_delay < 4) return; // 小于4时直接退出，不画图
+    render_delay = 0;             // 等于4时清零，并放行下面的画图逻辑
 
     // 渲染总路由
     switch(curr_page) {
@@ -321,6 +299,7 @@ void UI_Menu_Task(void) {
         case PAGE_SPEED:     UI_Draw_Page_Param("=== SPEED CFG ==="); break;
         case PAGE_TURN_PID:  UI_Draw_Page_Param("=== TURN PID ==="); break;
         case PAGE_MOTOR_PID: UI_Draw_Page_Param("=== MOTOR PID ==="); break;
+        case PAGE_IMG_THRES: UI_Draw_Page_Param("=== IMG THRESH ==="); break;
         case PAGE_MY_A:      UI_Draw_Page_My_A(); break; // <--- 渲染新增的 MY_A
         default: break;
     }

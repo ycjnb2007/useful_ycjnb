@@ -92,7 +92,7 @@ void gyro_transform_value(void)
     gyro_param.gyro_x = imu660rb_gyro_transition( ((float)imu660rb_gyro_x - gyro_zero_param.Xdata) );
     gyro_param.gyro_y = imu660rb_gyro_transition( ((float)imu660rb_gyro_y - gyro_zero_param.Ydata) );
     gyro_param.gyro_z = -imu660rb_gyro_transition( ((float)imu660rb_gyro_z - gyro_zero_param.Zdata) );
-    if (fabsf((float)gyro_param.gyro_z) < 1.0f) {
+    if (fabsf((float)gyro_param.gyro_z) < 0.4f) {
         gyro_param.gyro_z = 0;
     }//板子上z轴是反的，加了个负号
 }
